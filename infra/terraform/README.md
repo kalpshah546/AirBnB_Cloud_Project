@@ -1,6 +1,6 @@
 # Terraform stack
 
-Run from this directory. Copy `terraform.tfvars.example` to `terraform.tfvars` and review every value before applying.
+Run from this directory. For the team's stated USD 100 Free Plan credit balance, prefer `terraform.tfvars.credit-safe.example` and copy it to `terraform.tfvars`. It keeps one instance per SOA service, caps each service ASG at two instances, leaves the monolith at zero, and disables the optional load-generator instance. See [`../../docs/aws-credit-plan.md`](../../docs/aws-credit-plan.md) before applying.
 
 ## Safe staged deployment
 

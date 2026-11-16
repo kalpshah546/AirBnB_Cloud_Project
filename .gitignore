@@ -1,14 +1,40 @@
+# Secrets and local configuration
 .env
-.terraform/
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / generated test output
+node_modules/
+.k6/
+
+# Terraform
+**/terraform.tfvars
+**/*.auto.tfvars
+**/.terraform/
 *.tfstate
 *.tfstate.*
-terraform.tfvars
-__pycache__/
-.pytest_cache/
-.venv/
-*.pyc
-results/raw/*.json
-results/raw/*.csv
-results/figures/*.png
+*.tfplan
+crash.log
+
+# Generated result files (keep directory placeholders if needed)
+results/raw/*
+results/figures/*
 !results/raw/.gitkeep
 !results/figures/.gitkeep
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

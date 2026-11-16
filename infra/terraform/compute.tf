@@ -108,11 +108,22 @@ resource "aws_launch_template" "app" {
   vpc_security_group_ids = [aws_security_group.app.id]
   monitoring { enabled = true }
 
+  # T-family instances. "unlimited" never throttles (small surplus-credit charge possible); "standard" is credit-safe but throttles once credits run out - keep runs time-boxed.
+  dynamic "credit_specification" {
+    for_each = startswith(var.instance_type, "t") ? [1] : []
+    content {
+      cpu_credits = var.cpu_credits
+    }
+  }
+
   user_data = base64encode(templatefile("${path.module}/templates/app-user-data.sh.tftpl", {
     aws_region = var.aws_region
     ecr_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
     image_uri = "${aws_ecr_repository.images[each.key].repository_url}:latest"
-    env_file = join("\n", [for key, value in merge(local.app_environment, { SERVICE_NAME = each.key }) : "${key}=${value}"])
+    env_file = join("\n", [for key, value in merge(local.app_environment, {
+      SERVICE_NAME    = each.key
+      WEB_CONCURRENCY = contains(["search", "monolith"], each.key) ? tostring(var.cpu_bound_workers) : "1"
+    }) : "${key}=${value}"])
     run_worker = contains(["booking", "monolith"], each.key)
   }))
 
@@ -324,7 +335,21 @@ resource "aws_budgets_budget" "monthly" {
 
   notification {
     comparison_operator        = "GREATER_THAN"
-    threshold                  = 80
+    threshold                  = 50
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_email_addresses = [var.budget_alert_email]
+  }
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 75
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_email_addresses = [var.budget_alert_email]
+  }
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 90
     threshold_type             = "PERCENTAGE"
     notification_type          = "ACTUAL"
     subscriber_email_addresses = [var.budget_alert_email]

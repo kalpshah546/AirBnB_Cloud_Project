@@ -11,12 +11,12 @@ LISTING_ASG="${LISTING_ASG:-}"
 BOOKING_ASG="${BOOKING_ASG:-}"
 SEARCH_RESTORE_MIN="${SEARCH_RESTORE_MIN:-1}"
 SEARCH_RESTORE_DESIRED="${SEARCH_RESTORE_DESIRED:-1}"
-SEARCH_RESTORE_MAX="${SEARCH_RESTORE_MAX:-8}"
+SEARCH_RESTORE_MAX="${SEARCH_RESTORE_MAX:-${NORMAL_MAX_CAPACITY:-8}}"
 
 # E1 measures only search; stop the other service fleets to conserve a small vCPU quota.
 for other_asg in "$LISTING_ASG" "$BOOKING_ASG"; do
   if [[ -n "$other_asg" ]]; then
-    aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$other_asg" --min-size 0 --desired-capacity 0 --max-size 8
+    aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$other_asg" --min-size 0 --desired-capacity 0 --max-size "${NORMAL_MAX_CAPACITY:-8}"
   fi
 done
 
@@ -26,7 +26,7 @@ restore_groups() {
     --min-size "$SEARCH_RESTORE_MIN" --desired-capacity "$SEARCH_RESTORE_DESIRED" --max-size "$SEARCH_RESTORE_MAX" || true
   for other_asg in "$LISTING_ASG" "$BOOKING_ASG"; do
     if [[ -n "$other_asg" ]]; then
-      aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$other_asg" --min-size 1 --desired-capacity 1 --max-size 8 || true
+      aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$other_asg" --min-size 1 --desired-capacity 1 --max-size "${NORMAL_MAX_CAPACITY:-8}" || true
     fi
   done
 }

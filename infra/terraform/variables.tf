@@ -15,9 +15,25 @@ variable "vpc_cidr" {
 }
 
 variable "instance_type" {
-  description = "Small, burstable EC2 instance for the course PoC. Adjust after checking quota and price."
+  description = "EC2 type for app instances. Use t3 (not t2): t2 throttles to baseline CPU once credits run out, which corrupts load-test results."
   type        = string
-  default     = "t2.micro"
+  default     = "t3.micro"
+}
+
+variable "cpu_credits" {
+  description = "CPU credit mode for T-family instances: unlimited (no throttling, tiny surplus charge possible) or standard (credit-safe, throttles when credits run out)."
+  type        = string
+  default     = "unlimited"
+  validation {
+    condition     = contains(["unlimited", "standard"], var.cpu_credits)
+    error_message = "cpu_credits must be unlimited or standard."
+  }
+}
+
+variable "cpu_bound_workers" {
+  description = "Uvicorn worker processes for the CPU-bound search and monolith services. Python runs one request at a time per process (GIL), so this should equal the instance vCPU count (t3.micro = 2)."
+  type        = number
+  default     = 2
 }
 
 variable "min_capacity" {
