@@ -3,9 +3,9 @@ resource "aws_iam_role" "ec2" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
+      Effect    = "Allow"
       Principal = { Service = "ec2.amazonaws.com" }
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
@@ -26,8 +26,8 @@ resource "aws_iam_role_policy" "sqs" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
-      Action = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"]
+      Effect   = "Allow"
+      Action   = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes", "sqs:GetQueueUrl"]
       Resource = aws_sqs_queue.bookings.arn
     }]
   })
@@ -44,7 +44,7 @@ resource "aws_lb" "app" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
   subnets            = [for subnet in aws_subnet.public : subnet.id]
-  tags = { Name = "${var.project_name}-alb", Project = var.project_name }
+  tags               = { Name = "${var.project_name}-alb", Project = var.project_name }
 }
 
 resource "aws_lb_target_group" "service" {
@@ -98,15 +98,22 @@ resource "aws_lb_listener_rule" "service_paths" {
 }
 
 resource "aws_launch_template" "app" {
-  for_each      = local.service_config
-  name_prefix   = "${var.project_name}-${each.key}-"
-  image_id      = data.aws_ami.al2023.id
-  instance_type = var.instance_type
+  for_each               = local.service_config
+  name_prefix            = "${var.project_name}-${each.key}-"
+  image_id               = data.aws_ami.al2023.id
+  instance_type          = var.instance_type
   update_default_version = true
 
   iam_instance_profile { name = aws_iam_instance_profile.ec2.name }
   vpc_security_group_ids = [aws_security_group.app.id]
   monitoring { enabled = true }
+
+  # IMDSv2 only. Hop limit 2 lets the app container (boto3 / SQS) reach the instance role.
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
 
   # T-family instances. "unlimited" never throttles (small surplus-credit charge possible); "standard" is credit-safe but throttles once credits run out - keep runs time-boxed.
   dynamic "credit_specification" {
@@ -117,9 +124,9 @@ resource "aws_launch_template" "app" {
   }
 
   user_data = base64encode(templatefile("${path.module}/templates/app-user-data.sh.tftpl", {
-    aws_region = var.aws_region
+    aws_region   = var.aws_region
     ecr_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
-    image_uri = "${aws_ecr_repository.images[each.key].repository_url}:latest"
+    image_uri    = "${aws_ecr_repository.images[each.key].repository_url}:latest"
     env_file = join("\n", [for key, value in merge(local.app_environment, {
       SERVICE_NAME    = each.key
       WEB_CONCURRENCY = contains(["search", "monolith"], each.key) ? tostring(var.cpu_bound_workers) : "1"
@@ -129,11 +136,11 @@ resource "aws_launch_template" "app" {
 
   tag_specifications {
     resource_type = "instance"
-    tags = { Name = "${var.project_name}-${each.key}", Project = var.project_name, Service = each.key }
+    tags          = { Name = "${var.project_name}-${each.key}", Project = var.project_name, Service = each.key }
   }
   tag_specifications {
     resource_type = "volume"
-    tags = { Project = var.project_name, Service = each.key }
+    tags          = { Project = var.project_name, Service = each.key }
   }
 }
 
@@ -157,7 +164,7 @@ resource "aws_autoscaling_group" "service" {
     }
     triggers = ["launch_template"]
   }
-  metrics_granularity       = "1Minute"
+  metrics_granularity = "1Minute"
   enabled_metrics = [
     "GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity",
     "GroupInServiceInstances", "GroupPendingInstances"
@@ -181,10 +188,10 @@ resource "aws_autoscaling_group" "service" {
 }
 
 resource "aws_autoscaling_policy" "target_tracking" {
-  for_each = contains(["target", "scheduled"], var.scaling_mode) ? local.service_config : {}
-  name                   = "${var.project_name}-${each.key}-cpu-target-${var.cpu_target_percent}"
-  autoscaling_group_name = aws_autoscaling_group.service[each.key].name
-  policy_type            = "TargetTrackingScaling"
+  for_each                  = contains(["target", "scheduled"], var.scaling_mode) ? local.service_config : {}
+  name                      = "${var.project_name}-${each.key}-cpu-target-${var.cpu_target_percent}"
+  autoscaling_group_name    = aws_autoscaling_group.service[each.key].name
+  policy_type               = "TargetTrackingScaling"
   estimated_instance_warmup = var.instance_warmup_seconds
   target_tracking_configuration {
     predefined_metric_specification {
@@ -205,17 +212,17 @@ resource "aws_cloudwatch_metric_alarm" "step_high" {
   statistic           = "Average"
   threshold           = var.cpu_target_percent
   treat_missing_data  = "notBreaching"
-  dimensions = { AutoScalingGroupName = aws_autoscaling_group.service[each.key].name }
-  alarm_actions = [aws_autoscaling_policy.step_out[each.key].arn]
+  dimensions          = { AutoScalingGroupName = aws_autoscaling_group.service[each.key].name }
+  alarm_actions       = [aws_autoscaling_policy.step_out[each.key].arn]
 }
 
 resource "aws_autoscaling_policy" "step_out" {
-  for_each               = var.scaling_mode == "step" ? local.service_config : {}
-  name                   = "${var.project_name}-${each.key}-step-out"
-  autoscaling_group_name = aws_autoscaling_group.service[each.key].name
-  policy_type            = "StepScaling"
-  adjustment_type        = "ChangeInCapacity"
-  metric_aggregation_type      = "Average"
+  for_each                = var.scaling_mode == "step" ? local.service_config : {}
+  name                    = "${var.project_name}-${each.key}-step-out"
+  autoscaling_group_name  = aws_autoscaling_group.service[each.key].name
+  policy_type             = "StepScaling"
+  adjustment_type         = "ChangeInCapacity"
+  metric_aggregation_type = "Average"
   step_adjustment {
     metric_interval_lower_bound = 0
     metric_interval_upper_bound = 20
@@ -238,17 +245,17 @@ resource "aws_cloudwatch_metric_alarm" "step_low" {
   statistic           = "Average"
   threshold           = 25
   treat_missing_data  = "notBreaching"
-  dimensions = { AutoScalingGroupName = aws_autoscaling_group.service[each.key].name }
-  alarm_actions = [aws_autoscaling_policy.step_in[each.key].arn]
+  dimensions          = { AutoScalingGroupName = aws_autoscaling_group.service[each.key].name }
+  alarm_actions       = [aws_autoscaling_policy.step_in[each.key].arn]
 }
 
 resource "aws_autoscaling_policy" "step_in" {
-  for_each               = var.scaling_mode == "step" ? local.service_config : {}
-  name                   = "${var.project_name}-${each.key}-step-in"
-  autoscaling_group_name = aws_autoscaling_group.service[each.key].name
-  policy_type            = "StepScaling"
-  adjustment_type        = "ChangeInCapacity"
-  metric_aggregation_type      = "Average"
+  for_each                = var.scaling_mode == "step" ? local.service_config : {}
+  name                    = "${var.project_name}-${each.key}-step-in"
+  autoscaling_group_name  = aws_autoscaling_group.service[each.key].name
+  policy_type             = "StepScaling"
+  adjustment_type         = "ChangeInCapacity"
+  metric_aggregation_type = "Average"
   step_adjustment {
     metric_interval_upper_bound = 0
     scaling_adjustment          = -1
@@ -283,7 +290,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         type = "metric", x = 0, y = 0, width = 12, height = 6,
         properties = {
           title = "ALB requests and target response time"
-          view = "timeSeries", stacked = false, region = var.aws_region, period = 60
+          view  = "timeSeries", stacked = false, region = var.aws_region, period = 60
           metrics = [
             ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.app.arn_suffix, { stat = "Sum", label = "Requests" }],
             ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.app.arn_suffix, "TargetGroup", aws_lb_target_group.service["search"].arn_suffix, { stat = "Average", label = "Search target latency" }]
@@ -294,7 +301,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         type = "metric", x = (index % 2) * 12, y = 6 + floor(index / 2) * 6, width = 12, height = 6,
         properties = {
           title = "${service} ASG CPU and in-service instances"
-          view = "timeSeries", stacked = false, region = var.aws_region, period = 60
+          view  = "timeSeries", stacked = false, region = var.aws_region, period = 60
           metrics = [
             ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", aws_autoscaling_group.service[service].name, { stat = "Average", label = "CPU %" }],
             ["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", aws_autoscaling_group.service[service].name, { stat = "Average", yAxis = "right", label = "In-service instances" }]
@@ -313,7 +320,7 @@ resource "aws_instance" "load_generator" {
   vpc_security_group_ids      = [aws_security_group.app.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2.name
   associate_public_ip_address = true
-  user_data = <<-USERDATA
+  user_data                   = <<-USERDATA
     #!/bin/bash
     set -euxo pipefail
     dnf install -y curl git
@@ -322,16 +329,16 @@ resource "aws_instance" "load_generator" {
     echo "k6 load generator ready" > /home/ec2-user/LOADGEN_READY
     chown ec2-user:ec2-user /home/ec2-user/LOADGEN_READY
   USERDATA
-  tags = { Name = "${var.project_name}-k6-runner", Project = var.project_name }
+  tags                        = { Name = "${var.project_name}-k6-runner", Project = var.project_name }
 }
 
 resource "aws_budgets_budget" "monthly" {
-  count             = var.create_budget ? 1 : 0
-  name              = "${var.project_name}-monthly-budget"
-  budget_type       = "COST"
-  limit_amount      = tostring(var.budget_limit_usd)
-  limit_unit        = "USD"
-  time_unit         = "MONTHLY"
+  count        = var.create_budget ? 1 : 0
+  name         = "${var.project_name}-monthly-budget"
+  budget_type  = "COST"
+  limit_amount = tostring(var.budget_limit_usd)
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
 
   notification {
     comparison_operator        = "GREATER_THAN"
