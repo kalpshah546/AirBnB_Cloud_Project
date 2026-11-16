@@ -11,13 +11,13 @@ RUN_NUMBER="${RUN_NUMBER:-1}"
 mkdir -p "$ROOT/results/raw"
 
 stop_group() {
-  aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$1" --min-size 0 --desired-capacity 0 --max-size 8
+  aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$1" --min-size 0 --desired-capacity 0 --max-size "${NORMAL_MAX_CAPACITY:-8}"
 }
 restore_soa() {
   for asg in "$SEARCH_ASG" "$LISTING_ASG" "$BOOKING_ASG"; do
-    aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$asg" --min-size 1 --desired-capacity 1 --max-size 8 || true
+    aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$asg" --min-size 1 --desired-capacity 1 --max-size "${NORMAL_MAX_CAPACITY:-8}" || true
   done
-  aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$MONOLITH_ASG" --min-size 0 --desired-capacity 0 --max-size 8 || true
+  aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$MONOLITH_ASG" --min-size 0 --desired-capacity 0 --max-size "${NORMAL_MAX_CAPACITY:-8}" || true
 }
 trap restore_soa EXIT
 
@@ -41,6 +41,6 @@ k6 run -e BASE_URL="$BASE_URL" -e USE_MONOLITH=true \
   --summary-export "$ROOT/results/raw/e3_monolith_run_${RUN_NUMBER}.json" \
   "$ROOT/loadtest/k6/search-isolation.js"
 
-python "$ROOT/analysis/compare_e3.py" \
+python3 "$ROOT/analysis/compare_e3.py" \
   "$ROOT/results/raw/e3_soa_run_${RUN_NUMBER}.json" "$ROOT/results/raw/e3_monolith_run_${RUN_NUMBER}.json"
 echo "E3 complete; SOA and monolith each used three app instances at test start."

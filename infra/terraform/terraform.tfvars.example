@@ -1,15 +1,26 @@
-aws_region             = "ap-south-1"
-project_name           = "airbnb-soa-poc"
-instance_type          = "t2.micro"
-min_capacity           = 1
-desired_capacity       = 1
-max_capacity           = 8
-scaling_mode           = "target"
-cpu_target_percent     = 50
+aws_region   = "ap-south-1"
+project_name = "airbnb-soa-poc"
+
+# t3 (not t2): t2 throttles to ~10% CPU once burst credits run out and corrupts results.
+# t3.micro = 2 vCPU, so 2 worker processes for the CPU-bound services.
+instance_type     = "t3.micro"
+cpu_bound_workers = 2
+
+min_capacity     = 1
+desired_capacity = 1
+# Each t3.micro uses 2 vCPU of your EC2 quota. 8 search instances = 16 vCPU.
+# Lower this to 6 if your "Running On-Demand Standard instances" quota is 16.
+max_capacity = 8
+
+scaling_mode            = "target"
+cpu_target_percent      = 50
 instance_warmup_seconds = 180
-search_cpu_work_ms     = 80
+search_cpu_work_ms      = 80
+
+# Turn on only while running experiments (extra t3.small cost).
 create_loadgen_instance = false
-create_budget          = false
-budget_limit_usd       = 25
-# Set this to your email and create_budget=true only if you want an AWS Budget.
-# budget_alert_email = "you@example.com"
+
+# Keep the budget alarm on. deploy.sh refuses to run while the email is CHANGE_ME.
+create_budget      = true
+budget_limit_usd   = 25
+budget_alert_email = "CHANGE_ME@example.com"

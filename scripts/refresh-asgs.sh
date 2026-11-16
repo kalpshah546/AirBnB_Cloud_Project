@@ -11,7 +11,7 @@ fi
 
 mapfile -t groups < <(
   terraform -chdir="$TF_DIR" output -json autoscaling_group_names \
-    | python -c 'import json,sys; d=json.load(sys.stdin); print("\n".join(d[k] for k in ("search","listing","booking","monolith")))'
+    | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join(d[k] for k in ("search","listing","booking","monolith")))'
 )
 
 for group in "${groups[@]}"; do

@@ -1,0 +1,33 @@
+# Cost-guarded profile for the Airbnb student PoC.
+# Copy to terraform.tfvars and replace the budget email before applying.
+# This profile keeps the three SOA services alive at one instance each,
+# caps each service ASG at two instances, and leaves the monolith/load generator off.
+
+aws_region              = "ap-south-1"
+project_name            = "airbnb-soa-poc"
+# t3 not t2 (t2 throttles to ~10% CPU). 2 vCPU -> 2 workers for CPU-bound services.
+instance_type            = "t3.micro"
+cpu_bound_workers        = 2
+# Credit-safe: no surplus-credit charges, but CPU throttles when credits run out; keep runs time-boxed.
+# Use "unlimited" for load-test runs where throttling would corrupt results.
+cpu_credits              = "standard"
+min_capacity             = 1
+desired_capacity         = 1
+max_capacity             = 2
+scaling_mode             = "target"
+cpu_target_percent       = 50
+instance_warmup_seconds  = 180
+prewarm_capacity         = 2
+search_cpu_work_ms       = 80
+create_loadgen_instance  = false
+
+# Create a $35 monthly AWS Budget alert; this is an alert, NOT a spending cap.
+# Set your email and enable it before the full Terraform apply.
+create_budget            = true
+budget_limit_usd         = 35
+budget_alert_email       = "REPLACE_WITH_YOUR_EMAIL"
+
+# Keep the managed dependencies for the cloud experiments.
+# They are only needed while the AWS test stack is running; destroy the stack after the test window.
+cache_enabled            = true
+booking_async            = true

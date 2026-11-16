@@ -16,7 +16,9 @@ for service in search listing booking monolith; do
     exit 1
   fi
   echo "Building ${service}..."
-  docker build -f "${ROOT}/services/${service}/Dockerfile" -t "${REGISTRY}/${repo}:latest" "$ROOT"
+  # linux/amd64 matches the x86_64 Amazon Linux AMI; --provenance=false keeps a plain image manifest.
+  docker build --platform linux/amd64 --provenance=false \
+    -f "${ROOT}/services/${service}/Dockerfile" -t "${REGISTRY}/${repo}:latest" "$ROOT"
   docker push "${REGISTRY}/${repo}:latest"
 done
 

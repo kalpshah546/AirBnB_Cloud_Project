@@ -1,6 +1,6 @@
 # Airbnb SOA Cloud Proof of Concept
 
-Scalability & High-Traffic Events**
+**IT457 Cloud Computing | Scalability & High-Traffic Events**
 
 A runnable proof of concept comparing independently scaled Airbnb-style services against a single-process monolith under a synthetic holiday traffic spike. The system is designed for AWS `ap-south-1`, with Docker Compose for local development.
 
@@ -117,19 +117,21 @@ k6 run -e BASE_URL=http://localhost:8080 -e RATE_MAX=20 \
 
 ## 3. Deploy to AWS (`ap-south-1`)
 
+**Credit-conscious setup:** For the stated USD 100 AWS Free Plan balance, read [`docs/aws-credit-plan.md`](docs/aws-credit-plan.md) and copy `infra/terraform/terraform.tfvars.credit-safe.example` to `terraform.tfvars`. The default service ASG ceiling is two; E1 temporarily raises only search to 1/2/4/8 and restores the lower ceiling afterwards. Keep the EC2 load generator disabled until the test window.
+
 ### Before provisioning
 
 1. Configure AWS CLI credentials and the `ap-south-1` region.
-2. Check your EC2 running On-Demand vCPU quota. The default app type is `t2.micro` (one vCPU) and the monolith ASG starts at zero. E1 can temporarily use eight search instances; E2 can scale three service groups at once. A low quota can still block scale-out. If your quota is eight vCPUs, set a lower `max_capacity` for E2 or request a quota increase before testing. Check RDS/ElastiCache availability and service quotas too.
+2. Check your EC2 running On-Demand vCPU quota. The credit-safe profile uses `t3.micro` (one vCPU), one instance per SOA service, a normal maximum of two per service, and a monolith ASG starting at zero. E1 temporarily raises only search to eight instances; confirm the vCPU quota before running that point. The load generator adds its own vCPU requirement.
 3. Set an AWS Budget in the console or enable the optional Terraform budget.
-4. Understand the cost-bearing resources: ALB, four EC2 ASGs, RDS, ElastiCache, ECR storage, SQS, CloudWatch and data transfer. Tear down when not testing.
+4. Understand the cost-bearing resources: ALB, EC2 instances, RDS, ElastiCache, ECR storage, SQS, CloudWatch, public IPv4 and data transfer. Tear down when not testing. Budget alerts are not spending caps.
 5. The Terraform state contains the database password and infrastructure identifiers. Keep the state private and use an encrypted backend for shared work.
 
 ### Stage A — create the ECR repositories
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
+cp terraform.tfvars.credit-safe.example terraform.tfvars
 terraform init
 terraform apply -target=aws_ecr_repository.images -var-file=terraform.tfvars
 ```

@@ -5,4 +5,4 @@ COPY services/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY services /app/services
 EXPOSE 8000
-CMD ["uvicorn", "services.listing.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "services.listing.app:app", "--host", "0.0.0.0", "--port", "8000"]
