@@ -1,0 +1,144 @@
+name: airbnb-soa-poc
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: airbnbpoc
+      POSTGRES_USER: airbnb
+      POSTGRES_PASSWORD: airbnb-dev-only
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airbnb -d airbnbpoc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  localstack:
+    image: localstack/localstack:4
+    environment:
+      SERVICES: sqs
+      AWS_DEFAULT_REGION: ap-south-1
+      EAGER_SERVICE_LOADING: 1
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "awslocal sqs list-queues >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  search:
+    build:
+      context: .
+      dockerfile: services/search/Dockerfile
+    environment: &app-env
+      APP_ENV: local
+      AWS_REGION: ap-south-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      DB_HOST: postgres
+      DB_NAME: airbnbpoc
+      DB_USER: airbnb
+      DB_PASSWORD: airbnb-dev-only
+      DB_POOL_MIN: 1
+      DB_POOL_MAX: 3
+      CACHE_HOST: redis
+      CACHE_ENABLED: "true"
+      BOOKING_ASYNC: "true"
+      SQS_ENDPOINT_URL: http://localstack:4566
+      SQS_QUEUE_NAME: airbnb-bookings
+      SEARCH_CPU_WORK_MS: 80
+      LISTING_DATASET_SIZE: 50000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  listing:
+    build:
+      context: .
+      dockerfile: services/listing/Dockerfile
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  booking:
+    build:
+      context: .
+      dockerfile: services/booking/Dockerfile
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
+  booking-worker:
+    build:
+      context: .
+      dockerfile: services/booking/Dockerfile
+    command: ["python", "-m", "services.booking.worker"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
+  monolith:
+    build:
+      context: .
+      dockerfile: services/monolith/Dockerfile
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
+  monolith-worker:
+    build:
+      context: .
+      dockerfile: services/monolith/Dockerfile
+    command: ["python", "-m", "services.booking.worker"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - search
+      - listing
+      - booking
+      - monolith
+    restart: unless-stopped
+
+volumes:
+  pgdata:

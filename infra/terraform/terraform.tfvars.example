@@ -1,0 +1,15 @@
+aws_region             = "ap-south-1"
+project_name           = "airbnb-soa-poc"
+instance_type          = "t2.micro"
+min_capacity           = 1
+desired_capacity       = 1
+max_capacity           = 8
+scaling_mode           = "target"
+cpu_target_percent     = 50
+instance_warmup_seconds = 180
+search_cpu_work_ms     = 80
+create_loadgen_instance = false
+create_budget          = false
+budget_limit_usd       = 25
+# Set this to your email and create_budget=true only if you want an AWS Budget.
+# budget_alert_email = "you@example.com"

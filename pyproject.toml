@@ -1,0 +1,21 @@
+[project]
+name = "airbnb-soa-poc"
+version = "1.0.0"
+description = "Cloud proof of concept comparing independently scaled Airbnb-style services with a monolith"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.128.2",
+  "uvicorn[standard]==0.48.0",
+  "psycopg2-binary==2.9.11",
+  "redis==7.1.0",
+  "boto3==1.43.18",
+  "pydantic==2.12.5",
+]
+
+[project.optional-dependencies]
+analysis = ["pandas>=2.2,<3", "matplotlib>=3.8,<4"]
+test = ["pytest>=8,<10", "httpx>=0.27,<1"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

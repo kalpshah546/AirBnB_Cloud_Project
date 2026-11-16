@@ -1,0 +1,14 @@
+.env
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+results/raw/*.json
+results/raw/*.csv
+results/figures/*.png
+!results/raw/.gitkeep
+!results/figures/.gitkeep

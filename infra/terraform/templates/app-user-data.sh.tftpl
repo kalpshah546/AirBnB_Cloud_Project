@@ -1,0 +1,23 @@
+#!/bin/bash
+set -euxo pipefail
+
+REGION='${aws_region}'
+IMAGE_URI='${image_uri}'
+ECR_REGISTRY='${ecr_registry}'
+
+# No SSH ingress is opened. Use AWS Systems Manager Session Manager for access.
+dnf install -y docker
+systemctl enable --now docker
+
+aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+printf '%s\n' '${env_file}' > /opt/airbnb-app.env
+chmod 600 /opt/airbnb-app.env
+
+docker pull "$IMAGE_URI"
+docker rm -f app || true
+docker run -d --name app --restart unless-stopped --env-file /opt/airbnb-app.env -p 8000:8000 "$IMAGE_URI"
+
+%{ if run_worker ~}
+docker rm -f booking-worker || true
+docker run -d --name booking-worker --restart unless-stopped --env-file /opt/airbnb-app.env --entrypoint python "$IMAGE_URI" -m services.booking.worker
+%{ endif ~}
