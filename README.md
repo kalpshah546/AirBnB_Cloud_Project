@@ -1,6 +1,6 @@
 # Airbnb SOA Cloud Proof of Concept
 
-**IT457 Cloud Computing | Scalability & High-Traffic Events**
+Scalability & High-Traffic Events**
 
 A runnable proof of concept comparing independently scaled Airbnb-style services against a single-process monolith under a synthetic holiday traffic spike. The system is designed for AWS `ap-south-1`, with Docker Compose for local development.
 
