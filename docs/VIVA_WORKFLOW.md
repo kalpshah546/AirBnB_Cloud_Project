@@ -50,7 +50,7 @@ Show: first page of the report (objective + deliverables table).
 
 ### Minute 2–5: the architecture
 Show: the architecture diagram in the report (Section 2).
-Say, left to right: "Users go to an **Application Load Balancer**. It sends `/search` requests to a **target group** that health-checks each server. The servers are **EC2 instances created by an Auto Scaling Group** from a **launch template** that installs Docker and pulls my container from **ECR**. All servers use one shared **RDS PostgreSQL** database, so data stays consistent."
+Say, left to right: "Users go to an **Application Load Balancer**. It sends `/search` requests to a **target group** that health-checks each server. The servers are **EC2 instances created by an Auto Scaling Group** from a **launch template** that installs Docker and pulls my container from **ECR**. For the full application, the Listing and Booking servers would all use one shared **RDS PostgreSQL** database so data stays consistent. In my test only the Search service ran, and Search builds its listings in memory and never touches the database, so the RDS instance I created was idle. I should have left it out of the test."
 Open `infra/terraform/compute.tf` and point to: the ALB, the launch template (IMDSv2, user-data), the ASG (min 1, max 3), and the **target tracking policy with target value 50**.
 Say: "All of it is Terraform, so it can be rebuilt with one command."
 
@@ -107,7 +107,7 @@ Close: `docker compose -p airbnb-autoscale -f docker/compose.autoscale.yaml down
 - **EC2 / Launch template / ASG:** the virtual servers; the recipe for a server; the manager that keeps 1–3 servers and adds or removes them by rule.
 - **ALB + target group:** the load balancer, and the list of healthy servers behind it.
 - **CloudWatch:** metrics and alarms (CPU). The 50% rule is two CloudWatch alarms that AWS creates for you.
-- **RDS:** managed PostgreSQL shared by all servers.
+- **RDS:** managed PostgreSQL. Used by Listing and Booking; the Search service (the only one deployed in the test) does not use it, so it sat idle.
 - **Terraform:** infrastructure as code: `init`, `plan`, `apply`, `destroy`.
 - **k6:** load-testing tool. A virtual user runs the test function in a loop. I used an **open model** (`ramping-arrival-rate`): a fixed number of requests per second, whatever the server does. See `reports/DOCKER_AUTOSCALING_GUIDE.md` Section 3.
 
@@ -117,7 +117,8 @@ Close: `docker compose -p airbnb-autoscale -f docker/compose.autoscale.yaml down
 
 - **Why only Search?** 8-vCPU quota; demo uses 2; room for 3 `t3.micro`; Search is the CPU-bound service. Listing/Booking were not tested on the ALB.
 - **Did it really scale automatically?** Yes; the Activity history shows the alarm cause for each launch. Nobody changed capacity by hand.
-- **Why a shared database?** Otherwise each server would have its own data.
+- **Why a shared database?** For Listing and Booking: otherwise each server would have its own bookings. **Be honest that Search doesn't use the database** (it generates its 50,000 listings in memory at startup and burns about 80 ms of CPU per request), so in the AWS test the RDS instance was created but idle and cost a little for nothing.
+- **Where is the app code and database?** Code: `services/` (search, listing, booking, monolith, common). Database: PostgreSQL; the tables (`listings`, `bookings`) are created by the code in `services/common/db.py` and filled with 50,000 generated listings by `services/common/data.py`. No SQL file exists and the data is fake.
 - **Why `t3` not `t2`?** `t2` throttles CPU when credits run out, which would corrupt the test.
 - **Why 2 workers?** Python uses one CPU core per process; with 1 worker CPU could never reach 50% on a 2-vCPU server, so scaling would never trigger.
 - **Does Docker autoscale?** No. My script decides; Docker only runs N copies.

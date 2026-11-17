@@ -8,7 +8,7 @@ This is the **local, Docker-only** companion to the AWS assignment. It runs on o
 
 ```
  k6 (load) ---> Nginx :18081 ---> search container 1 \
-                  (gateway)  ---> search container 2  } all use one PostgreSQL container
+                  (gateway)  ---> search container 2  } (Postgres also runs, but Search does not use it)
                              ---> search container N /
                                       ^
         docker-autoscaler.sh reads CPU every 10 s, runs: docker compose up --scale search=N
@@ -18,7 +18,7 @@ This is the **local, Docker-only** companion to the AWS assignment. It runs on o
 |---|---|---|
 | Compose stack | `docker/compose.autoscale.yaml` | Defines `postgres`, `search` (scalable, **CPU limit 0.6 per container**) and `gateway` (Nginx). No fixed container name or host port on `search`, so several copies can exist. |
 | Load balancer | `docker/nginx.autoscale.conf` | Nginx forwards `/` to `http://search:8000`. Docker's internal DNS (`127.0.0.11`) returns the address of **every** `search` container. Using a variable in `proxy_pass` plus `resolver ... valid=2s` makes Nginx re-resolve every 2 seconds, so new containers start receiving traffic and removed ones stop, without reloading Nginx. |
-| Shared database | `postgres` service | All containers use the same database, as on AWS (shared state). |
+| Database | `postgres` service | Started so the stack matches the full application, but the **Search service does not use it** (it generates its listings in memory), so it was idle in these runs. |
 | Autoscaler | `scripts/docker-autoscaler.sh` | Control loop (below). |
 | Results | `results/evidence/docker_p5_*`, `docker_p8_*` | Measured data. Graphs in `reports/figures/docker_p*_*.png`. |
 

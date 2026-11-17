@@ -53,7 +53,7 @@ If the stack has already been destroyed: show the saved graphs, the screenshots 
 - **Warm-up (120 s):** time a new instance is ignored when computing average CPU, so it is not counted before it is serving.
 - **CloudWatch:** metrics (CPU, instance counts, ALB metrics) and alarms.
 - **ECR:** private Docker registry holding our images. The instance role has read-only access to it.
-- **RDS PostgreSQL:** one shared database for all instances; that is what keeps data consistent when there are several servers.
+- **RDS PostgreSQL:** the shared database for Listing and Booking, which keeps data consistent when there are several servers. **The Search service does not use it** (it generates its listings in memory), so in the test, where only Search ran, it was idle.
 - **IAM:** a role for instances (ECR read + SSM); a separate IAM user for me. Never use the root account for work.
 - **IMDSv2:** a more secure way for software on the instance to read instance metadata; required in the launch template.
 - **Terraform:** infrastructure as code. `terraform plan` shows what will change, `apply` creates it, `destroy` removes it. State is stored locally (so only one person should run it).
@@ -153,7 +153,7 @@ aws cloudwatch get-metric-statistics ...             # CPU etc.
 The account's EC2 quota is 8 vCPU; the demo server takes 2, leaving room for three `t3.micro` instances. Search is the CPU-bound service, so it demonstrates CPU scaling. Listing and Booking were not deployed on the ALB and I did not test them there.
 
 **Q: Why not just copy the Docker Compose stack onto every instance?**
-Each copy would have its own database, so bookings would differ between servers. A shared RDS database keeps state consistent.
+Each copy would have its own database, so bookings would differ between servers. A shared RDS database keeps state consistent for Listing and Booking. (Search needs no database, so for the Search-only test this didn't matter.)
 
 **Q: Why is Redis off?**
 It is only a read cache, so correctness does not depend on it, and it costs about $0.02 per hour.

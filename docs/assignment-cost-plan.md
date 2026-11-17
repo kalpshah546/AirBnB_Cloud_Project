@@ -2,8 +2,12 @@
 
 All prices are **estimates** (ap-south-1, on-demand, approximate; verify on the AWS pricing pages). Nothing here is measured.
 
-## Why shared state is required
-Every service keeps no local state, but bookings and listings live in Postgres. Copying the Docker Compose stack
+> **Correction (found after the experiment):** the Search service, the only one deployed in the test, does not use
+> PostgreSQL at all (it builds its listings in memory). The RDS instance in this plan was therefore idle during the
+> test; it matters only for Listing and Booking. A Search-only run could have skipped RDS and saved about $0.02/h.
+
+## Why shared state is required (for Listing and Booking)
+Search keeps no state at all, but bookings and listings live in Postgres. Copying the Docker Compose stack
 onto each ASG instance would give every instance its own empty database, so scaled instances would disagree.
 The ASG instances therefore share one Postgres. Redis is only a cache-aside read cache and can be dropped.
 
