@@ -117,7 +117,7 @@ Consequences, stated plainly:
 http://airbnb-soa-poc-alb-1748194001.ap-south-1.elb.amazonaws.com/search?city=Goa&limit=5
 ```
 
-MEASURED: this returned HTTP 200 with JSON search results from the 50,000-row dataset once the first target became healthy. The URL only works **while the stack exists**; it stops working after `terraform destroy`. (`/health` on the ALB returns 404 by design, because only the service paths are routed; the health check hits `/health` on each instance directly.)
+MEASURED: this returned HTTP 200 with JSON search results from the 50,000-row dataset once the first target became healthy. The URL only works **while the stack exists**; **the stack has since been destroyed (Section 13), so this URL no longer works.** (`/health` on the ALB returns 404 by design, because only the service paths are routed; the health check hits `/health` on each instance directly.)
 
 ---
 
@@ -335,7 +335,7 @@ The Activity tab only keeps recent history, so if the screenshots are missing, t
 | Public IPv4 addresses (instances + ALB) | $0.005 each / hour |
 | **Whole stack, running** | **about $0.10 – 0.16 / hour** |
 
-The stack was created at about 16:28 UTC on 17 Nov. Leaving it running for a month would cost roughly $90–110 (about the whole $100 credit), which is why it should be destroyed once the evidence is saved. No NAT gateway, Redis or load-generator instance was created. A separate demo `t3.small` (about $19/month) exists outside this stack.
+The stack existed from about 16:28 to 20:47 UTC on 17 Nov (about 4.3 hours), so its cost is **estimated** at roughly $0.4 – 0.7 (the Billing console shows the actual figure). Leaving it running for a month would have cost roughly $90–110 (about the whole $100 credit), which is why it was destroyed once the evidence was saved. No NAT gateway, Redis or load-generator instance was created. A separate demo `t3.small` (about $19/month) exists outside this stack.
 
 ---
 
@@ -345,13 +345,18 @@ See the repository `README.md` ("AWS autoscaling assignment: reproduce") for exa
 
 ## 13. Cleanup
 
-The stack must be destroyed after the screenshots are saved and the raw data is backed up. **It has not been destroyed yet.**
+**Status (MEASURED): the assignment stack was destroyed** on 17 Nov 2026, `terraform destroy` from 20:37:33 to 20:47:31 UTC: **52 resources destroyed**, Terraform state empty. After the destroy, a read-only check of region ap-south-1 found **no** load balancers, target groups, Auto Scaling groups, RDS or ElastiCache instances, ECR repositories, SQS queues, non-default VPCs, NAT gateways, Elastic IPs or `airbnb-soa-poc` IAM roles. The live ALB URL in Section 4 therefore **no longer works**.
+
+The separate demo EC2 (`i-0c09ab8dcb8b5a32f`, a `t3.small`) was **not** part of this stack and was not touched by the destroy. At the time of the check it was in the **stopped** state (stopped by a user action at 19:17 UTC on 17 Nov, not by this project's automation); its disk is preserved and it can be started from the EC2 console.
+
+To rebuild the stack (for example for a demonstration), follow the README reproduction steps. To remove it again:
 
 ```bash
 cd infra/terraform
 terraform destroy -var-file=terraform.tfvars   # review the list; type yes
 ```
-This removes the ALB, ASGs and instances, launch templates, RDS database (no final snapshot), SQS queue, ECR repositories (with their images), VPC and the CloudWatch dashboard. It does **not** touch the separate demo EC2 (`i-0c09ab8dcb8b5a32f`), which is not managed by this Terraform state. Afterwards confirm in the console that no load balancer, RDS instance or Auto Scaling group remains, and detach the temporary IAM permissions.
+
+Remaining manual step for the account owner: detach the temporary extra IAM permissions from the IAM user `airbnb_project` when no further rebuilds are planned, and deactivate any root-account access keys.
 
 ## 14. Raw data and where it is
 

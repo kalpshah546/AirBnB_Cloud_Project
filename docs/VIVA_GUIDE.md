@@ -6,7 +6,9 @@
 
 ## 1. What to show live (in this order)
 
-1. **The live URL** (works only while the stack is up):
+> **Update: the AWS stack was destroyed on 17 Nov 2026 (52 resources), so the live URL below no longer works.** Use the screenshots and saved graphs instead, and follow `docs/VIVA_WORKFLOW.md` for the full plan (including how to rebuild a live URL if needed).
+
+1. **The live URL** (worked only while the stack was up):
    `http://airbnb-soa-poc-alb-1748194001.ap-south-1.elb.amazonaws.com/search?city=Goa&limit=5`
    Say: "This goes through the load balancer, not directly to a server."
    - `/health` on the ALB gives 404 on purpose: only `/search`, `/listings`, `/bookings` are routed.
