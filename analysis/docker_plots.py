@@ -56,6 +56,12 @@ ax2.step(st, reps, where="post", color="#27ae60", lw=3, label="Running search co
 ax2.set_ylim(0, max(reps) + 1)
 ax2.set_yticks(range(0, max(reps) + 2))
 ax2.set_ylabel("Number of containers")
+YMAX = 400  # clip the axis so normal latency is readable; outliers are annotated instead
+ax.set_ylim(0, YMAX)
+for t, v in zip(bt, p95):
+    if v > YMAX:
+        ax.annotate(f"p95 = {v / 1000:.1f} s\n(one slow request\nat scale-in)", xy=(t, YMAX), xytext=(t, YMAX * 0.62),
+                    fontsize=8, ha="center", arrowprops=dict(arrowstyle="->", color="#c0392b"), color="#c0392b")
 ytop = ax.get_ylim()[1]
 for i, (t, lab) in enumerate(events):
     ax.axvline(t, color="k", ls=":", lw=1)
