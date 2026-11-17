@@ -176,3 +176,6 @@ No SSH; instances reachable only from the ALB; database only from instances and 
 
 **Q: How would this scale for a real event like IRCTC?**
 Higher max capacity, a lower target CPU (for example 40%) or step scaling and **scheduled pre-warming** before known events, since reactive scaling lags by minutes; add caching (Redis), a bigger or replicated database, HTTPS and multiple AZs. The repository already has scheduled and step scaling modes in Terraform that I did not test.
+
+**Q: You used Nginx in one place and the AWS load balancer in another. What is the difference?**
+Both are reverse proxies that spread requests over several backends. On AWS the managed Application Load Balancer is paired with the Auto Scaling Group, which decides how many instances exist; it adds health checks, connection draining and multi-AZ. In the local Docker demo, Nginx plays the same role but Docker has no autoscaler, so my own script (`scripts/docker-autoscaler.sh`) decides how many containers run. Kubernetes autoscaling was not implemented. Details: `reports/DOCKER_AUTOSCALING_GUIDE.md`.

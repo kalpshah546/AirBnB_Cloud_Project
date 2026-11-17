@@ -20,6 +20,7 @@ Holiday and sale events (Hotstar, IRCTC Tatkal, Flipkart) produce sudden traffic
 | 1 | Live URL of a Load Balancer returning a response | Done (MEASURED) while the stack is up | Section 4 |
 | 2 | ASG dashboard screenshots showing instances launching | Console screenshots to be added by the author (the AWS console login is needed). The ASG activity history is already saved as raw data. | `screenshots/`, `results/evidence/asg_scaling_activities.json` |
 | 3 | Load-testing report with response time vs instance count | Done (MEASURED) | Section 7, `reports/figures/e2_response_time_vs_instances.png` |
+| + | Companion: Docker autoscaling with Nginx (extra, not required by the brief) | Done (MEASURED); Kubernetes not done | Section 8, `reports/DOCKER_AUTOSCALING_GUIDE.md` |
 
 ---
 
@@ -223,25 +224,92 @@ Data: `results/evidence/e2_latency_by_instance_count.csv`. Note the sample size:
 
 ---
 
-## 8. Screenshots (Deliverable 2)
+## 8. Companion experiment: autoscaling with Docker on one machine (MEASURED)
 
-These must be taken by the author in the AWS console because they need a signed-in browser. **They are not included in the repository yet.** Save them in `screenshots/` with these names:
+The same idea was reproduced locally with Docker, with **Nginx** as the load balancer instead of the AWS Application Load Balancer. This costs nothing and shows the mechanism in a form that is easy to inspect. Full details, commands and an explanation of k6 are in `reports/DOCKER_AUTOSCALING_GUIDE.md`. **Kubernetes was not implemented.**
 
-| File | What to capture |
-|---|---|
-| `01-alb-url-response.png` | Browser showing the live `/search` URL response |
-| `02-alb-details.png` | EC2 → Load balancers → the ALB (DNS name, listeners) |
-| `03-target-group-healthy.png` | Target group `airbnb-soa-poc-search-tg` → Targets: healthy |
-| `04-asg-overview.png` | ASG `airbnb-soa-poc-search-asg`: min 1, desired, max 3 |
-| `05-asg-activity-history.png` | ASG → Activity tab: "Launching a new EC2 instance" and "Terminating EC2 instance" rows |
-| `06-asg-scaling-policy.png` | ASG → Automatic scaling: target tracking, target value 50 |
-| `07-asg-monitoring.png` | ASG → Monitoring: CPU and instance count |
+### How the two setups compare
 
-Until then, the same evidence exists as raw data: `results/evidence/asg_scaling_activities.json`.
+| | AWS (main experiment) | Docker (companion) |
+|---|---|---|
+| Load balancer | **AWS Application Load Balancer** (managed, layer 7, health checks, connection draining) | **Nginx** container, routes `/` to `http://search:8000`; Docker DNS returns every replica and Nginx re-resolves every 2 s |
+| Unit that is scaled | EC2 instance (`t3.micro`, 2 vCPU) | Container (CPU limit 0.6) |
+| Who decides to scale | **EC2 Auto Scaling Group**, target tracking (CloudWatch alarms) | **My script** `scripts/docker-autoscaler.sh` (Docker has no built-in autoscaler) |
+| Rule | Average CPU 50% | Average CPU 50% of the container limit, `ceil(current × utilization ÷ 50)`, 1 to 5 containers |
+| Scale-in delay | about 15 min of low CPU (AWS rule) | 120 s of low reading (my setting) |
+| Shared database | RDS PostgreSQL | PostgreSQL container |
+| Cost | about $0.10 – 0.16 per hour (estimate) | none |
+| Health checks and replacement | Yes (ALB + ASG replaced a failed instance in E1) | No |
+
+### Results
+
+| Run | Peak rate | Containers over time | Requests | Failed | Median | p95 |
+|---|---|---|---|---|---|---|
+| Docker 1 | 5 req/s | 1 → 2 → 3 → 2 → 3 → 1 | 2,249 | 0 | 101 ms | 126 ms |
+| Docker 2 | 8 req/s | 1 → 2 → 3 → 4 → 1 | 3,284 | 0 | 101 ms | 154 ms |
+
+![Docker run 2: response time vs containers](figures/docker_p8_response_time_vs_containers.png)
+![Docker run 2: CPU and scaling events](figures/docker_p8_cpu_over_time.png)
+
+(Run 1 graphs: `figures/docker_p5_*.png`. Data: `results/evidence/docker_p5_*`, `docker_p8_*`.)
+
+Run 2 timeline (UTC): 19:17:07 CPU 58% → 2nd container; 19:17:20 CPU 56% → 3rd; 19:21:38 CPU 59% → 4th; 19:23:53 load back to 1 req/s (CPU 5%) → back to 1 container.
+
+### Honest reading of the Docker results
+
+- The scaling mechanism worked and every request succeeded.
+- **Latency barely changed**: one 0.6-CPU container on this fast laptop coped with 8 req/s, so p95 only moved from about 130 ms to 150 – 190 ms. The large latency effect is in the AWS experiment (Section 7), where a real `t3.micro` was overloaded.
+- Run 1 **flapped** (3 → 2 → 3): with 2 containers CPU would sit above the 50% target. A Kubernetes HPA would smooth this; my script does not.
+- One slow request at each final scale-in (3.2 s and 6.2 s), consistent with Nginx briefly sending a request to a removed container and waiting out its 3 s connect timeout once or twice. This is my likely explanation, not verified. The AWS ALB drains connections to avoid this.
+- Requests per container could not be counted (removed containers lose their logs), so an even spread is **not** proven by a count.
+- One run per rate; the load generator, Nginx, Postgres and containers share one machine.
 
 ---
 
-## 9. Limitations
+## 9. Screenshots
+
+I cannot capture screenshots (they need your signed-in browser or terminal). Save yours in `screenshots/` using these names, so the report and viva refer to the same files.
+
+### A. AWS console and browser (Deliverable 2)
+
+| File | What to capture | Why it matters |
+|---|---|---|
+| `01-alb-url-response.png` | Browser showing the live `/search?city=Goa&limit=5` response, with the ALB DNS name visible in the address bar | Deliverable 1: live URL through the load balancer |
+| `02-alb-details.png` | EC2 → Load balancers → the ALB (DNS name, listener on port 80, listener rules) | Shows the load balancer exists |
+| `03-target-group-healthy.png` | Target group `airbnb-soa-poc-search-tg` → Targets tab: instances **healthy** | Shows health checks and registration |
+| `04-asg-overview.png` | ASG `airbnb-soa-poc-search-asg` → Details: min 1, desired, max 3 | Shows the scaling limits |
+| `05-asg-activity-history.png` | ASG → **Activity** tab: "Launching a new EC2 instance" and "Terminating EC2 instance" rows with their causes | **Main proof of automatic scale-out and scale-in** |
+| `06-asg-scaling-policy.png` | ASG → Automatic scaling: target tracking policy, target value **50** | Shows the 50% CPU rule |
+| `07-asg-monitoring.png` | ASG → Monitoring: CPU utilization and instance count graphs | CloudWatch evidence |
+| `08-asg-instances.png` | ASG → Instance management: several InService instances | Shows more than one instance |
+| `09-ec2-instances.png` | EC2 → Instances: the instances launched by the ASG (running, then terminated ones) | Instances launching automatically |
+
+The Activity tab only keeps recent history, so if the screenshots are missing, the same events exist as raw data in `results/evidence/asg_scaling_activities.json`.
+
+### B. Terminal screenshots to show how the tests were run
+
+| File | What to capture |
+|---|---|
+| `10-k6-aws-e2-output.png` | The end of the k6 run (`results/raw/e2_k6_stdout.txt`): `http_reqs`, `http_req_duration` with p95, `http_req_failed` |
+| `11-terraform-apply-complete.png` | `terraform apply` finishing with "Apply complete" (re-create the stack if you need this) |
+
+### C. Docker autoscaling (requires re-running the demo, about 15 minutes; commands in the Docker guide)
+
+| File | What to capture | Why |
+|---|---|---|
+| `12-docker-compose-ps-1.png` | `docker compose -p airbnb-autoscale -f docker/compose.autoscale.yaml ps` before the spike: **1** search container | Starting state |
+| `13-docker-autoscaler-log.png` | The autoscaler terminal showing `scale_out` lines (replicas 1 → 2 → 3, CPU above 50) | Proof the script made the decision |
+| `14-docker-compose-ps-3.png` | The same `ps` command at the peak: **3 or 4** search containers | Containers added |
+| `15-docker-stats.png` | `docker stats` at the peak: CPU per container | CPU evidence |
+| `16-docker-scale-in.png` | The autoscaler log showing `scale_in` and `ps` back to 1 container | Scale-in |
+| `17-docker-k6-output.png` | The k6 summary for the Docker run | Load test evidence |
+| `18-nginx-conf.png` | `docker/nginx.autoscale.conf` (the `resolver` and `proxy_pass http://$upstream:8000` lines) | Shows Nginx as the load balancer |
+
+**Minimum set for the viva:** 01, 03, 05, 06, plus the graph `reports/figures/e2_response_time_vs_instances.png`. The rest are supporting evidence.
+
+---
+
+## 10. Limitations
 
 - Only the **Search** service was deployed (8-vCPU quota); Listing and Booking were **not** tested through the ALB (Section 3).
 - Traffic came from one home connection over the internet, so absolute latencies include network delay and the load generator could itself be a bottleneck at much higher rates.
@@ -250,11 +318,12 @@ Until then, the same evidence exists as raw data: `results/evidence/asg_scaling_
 - HTTP only (no TLS), single region, single-AZ database without backups. This is a PoC, not a production design.
 - The peak load (16 req/s) is small in absolute terms; the demonstration is about the **shape** of the response (capacity added after CPU crossed the target, removed after load fell), not about large-scale throughput.
 - Redis caching and asynchronous (SQS) booking were not exercised.
+- The Docker companion (Section 8) uses a custom autoscaler script, not a Docker feature; it shows little latency change and flapped in run 1. Kubernetes autoscaling was not implemented.
 - I did not verify alarm-history details beyond the ASG activity records (Observation 2).
 
 ---
 
-## 10. Cost
+## 11. Cost
 
 **ESTIMATES** (ap-south-1, on-demand list prices from memory, not measured; check the Billing console for actuals):
 
@@ -270,11 +339,11 @@ The stack was created at about 16:28 UTC on 17 Nov. Leaving it running for a mon
 
 ---
 
-## 11. Reproduction
+## 12. Reproduction
 
-See the repository `README.md` ("AWS autoscaling assignment: reproduce") for exact commands. In brief: configure an IAM user, copy `terraform.tfvars.assignment.example` to `terraform.tfvars`, apply only the ECR repositories, run `scripts/build-push.sh`, apply the rest, run k6 (`fixed-capacity.js`, `search-spike.js`) with `scripts/monitor-asg.sh` alongside, then `analysis/bucket_k6.py` and `analysis/report_plots.py`.
+See the repository `README.md` ("AWS autoscaling assignment: reproduce") for exact commands. In brief: configure an IAM user, copy `terraform.tfvars.assignment.example` to `terraform.tfvars`, apply only the ECR repositories, run `scripts/build-push.sh`, apply the rest, run k6 (`fixed-capacity.js`, `search-spike.js`) with `scripts/monitor-asg.sh` alongside, then `analysis/bucket_k6.py` and `analysis/report_plots.py`. For the Docker companion see `reports/DOCKER_AUTOSCALING_GUIDE.md` (`docker/compose.autoscale.yaml`, `scripts/docker-autoscaler.sh`, `analysis/docker_plots.py`).
 
-## 12. Cleanup
+## 13. Cleanup
 
 The stack must be destroyed after the screenshots are saved and the raw data is backed up. **It has not been destroyed yet.**
 
@@ -284,11 +353,13 @@ terraform destroy -var-file=terraform.tfvars   # review the list; type yes
 ```
 This removes the ALB, ASGs and instances, launch templates, RDS database (no final snapshot), SQS queue, ECR repositories (with their images), VPC and the CloudWatch dashboard. It does **not** touch the separate demo EC2 (`i-0c09ab8dcb8b5a32f`), which is not managed by this Terraform state. Afterwards confirm in the console that no load balancer, RDS instance or Auto Scaling group remains, and detach the temporary IAM permissions.
 
-## 13. Raw data and where it is
+## 14. Raw data and where it is
 
 | Data | Location | In Git? |
 |---|---|---|
 | k6 per-request data (E1 26 MB, E2 56 MB) | `results/raw/e1_requests.csv`, `e2_requests.csv` | **No (back up manually)** |
-| k6 console logs | `results/raw/e1_k6_stdout.txt`, `e2_k6_stdout.txt` | No |
+| k6 per-request data, Docker runs | `results/raw/docker_p5_requests.csv`, `docker_p8_requests.csv` (large) | **No (back up manually)** |
+| k6 console logs | `results/raw/e1_k6_stdout.txt`, `e2_k6_stdout.txt`, `docker_p5_k6_stdout.txt`, `docker_p8_k6_stdout.txt` | No |
+| Docker summaries, buckets and autoscaler samples | `results/evidence/docker_p5_*`, `docker_p8_*` | Yes |
 | k6 summaries, 30 s buckets, ASG samples, CloudWatch JSON, ASG activity history, run log | `results/evidence/` (account ID redacted) | Yes |
 | Graphs | `reports/figures/` | Yes |
