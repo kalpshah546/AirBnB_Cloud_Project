@@ -1,0 +1,28 @@
+# Minimal-cost profile for the scalability assignment (copy to terraform.tfvars; never commit it).
+# One shared RDS Postgres holds all state; Redis, SQS async and the load-generator instance are off.
+aws_region   = "ap-south-1"
+project_name = "airbnb-soa-poc"
+
+instance_type     = "t3.micro" # t2 throttles; t3 is the cheapest non-throttled choice
+cpu_credits       = "unlimited"
+cpu_bound_workers = 2          # 2 vCPUs -> 2 uvicorn workers so CPU can pass 50%
+
+min_capacity     = 1
+desired_capacity = 1
+max_capacity     = 3 # per-service ceiling; lower it if your EC2 vCPU quota is small
+
+scaling_mode            = "target"
+cpu_target_percent      = 50
+instance_warmup_seconds = 120
+search_cpu_work_ms      = 80
+
+create_redis            = false
+cache_enabled           = false
+booking_async           = false
+create_loadgen_instance = false # run k6 from WSL
+
+db_instance_class = "db.t3.micro"
+
+create_budget      = true
+budget_limit_usd   = 25
+budget_alert_email = "CHANGE_ME@example.com"

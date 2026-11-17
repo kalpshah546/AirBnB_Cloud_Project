@@ -169,3 +169,9 @@ variable "booking_async" {
   default     = true
 }
 
+
+variable "create_redis" {
+  description = "Create the ElastiCache Redis node. Redis is only a read cache (cache-aside); set false to save cost. All shared state lives in Postgres."
+  type        = bool
+  default     = true
+}

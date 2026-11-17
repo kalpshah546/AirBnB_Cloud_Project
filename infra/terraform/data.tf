@@ -57,18 +57,20 @@ resource "aws_db_instance" "postgres" {
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
+  count      = var.create_redis ? 1 : 0
   name       = "${var.project_name}-redis-subnets"
   subnet_ids = [for subnet in aws_subnet.private : subnet.id]
 }
 
 resource "aws_elasticache_cluster" "redis" {
+  count                = var.create_redis ? 1 : 0
   cluster_id           = "${var.project_name}-redis"
   engine               = "redis"
   node_type            = var.redis_node_type
   num_cache_nodes      = 1
   parameter_group_name = "default.redis7"
   port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  subnet_group_name    = aws_elasticache_subnet_group.redis[0].name
   security_group_ids   = [aws_security_group.cache.id]
   tags                 = { Name = "${var.project_name}-redis", Project = var.project_name }
 }

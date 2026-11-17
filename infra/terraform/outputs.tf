@@ -25,7 +25,7 @@ output "rds_endpoint" {
 }
 
 output "redis_endpoint" {
-  value = aws_elasticache_cluster.redis.cache_nodes[0].address
+  value = var.create_redis ? aws_elasticache_cluster.redis[0].cache_nodes[0].address : null
 }
 
 output "sqs_queue_url" {

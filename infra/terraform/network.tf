@@ -38,9 +38,9 @@ locals {
     DB_PASSWORD          = local.database_password
     DB_POOL_MIN          = "1"
     DB_POOL_MAX          = tostring(var.db_pool_max)
-    CACHE_HOST           = aws_elasticache_cluster.redis.cache_nodes[0].address
-    CACHE_PORT           = tostring(aws_elasticache_cluster.redis.cache_nodes[0].port)
-    CACHE_ENABLED        = tostring(var.cache_enabled)
+    CACHE_HOST           = var.create_redis ? aws_elasticache_cluster.redis[0].cache_nodes[0].address : "localhost"
+    CACHE_PORT           = var.create_redis ? tostring(aws_elasticache_cluster.redis[0].cache_nodes[0].port) : "6379"
+    CACHE_ENABLED        = tostring(var.create_redis && var.cache_enabled)
     BOOKING_ASYNC        = tostring(var.booking_async)
     SQS_QUEUE_URL        = aws_sqs_queue.bookings.url
     SQS_QUEUE_NAME       = aws_sqs_queue.bookings.name
