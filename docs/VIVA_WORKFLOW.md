@@ -55,16 +55,16 @@ Open `infra/terraform/compute.tf` and point to: the ALB, the launch template (IM
 Say: "All of it is Terraform, so it can be rebuilt with one command."
 
 ### Minute 5–7: the live URL (Deliverable 1)
-Show: screenshot `01-alb-url-response.png` (or the live URL if you rebuilt the stack).
+Show: screenshot `screenshots/01-alb-url-response.png` (or the live URL if you rebuilt the stack).
 Say: "This is the ALB DNS name answering `/search` with JSON. I destroyed the stack afterwards to stop the charges; the Terraform code rebuilds it in about 25 minutes."
-Show: `03-target-group-healthy.png` (healthy targets).
+Show: `04-target-group-healthy.png` (healthy targets).
 
 ### Minute 7–11: the proof of autoscaling (the main part)
 1. Show `reports/figures/e2_response_time_vs_instances.png`. Walk it: "Green = number of healthy instances. Red = p95 response time. With 1 instance the latency climbs to over a second. When the ASG adds instance 2 at 17:10, latency falls back to about 270 ms. A third instance follows. After traffic drops, the instances are removed."
 2. Show `e2_cpu_over_time.png`: "CPU sat at about 76%, above the 50% line, which triggered scaling."
-3. Show the **ASG Activity screenshot** (`05-asg-activity-history.png`): "Launching a new EC2 instance, with the cause: alarm AlarmHigh in state ALARM. I did not launch these by hand."
+3. Show the **ASG Activity screenshot** (`05-asg-activity-scale-out.png`): "Launching a new EC2 instance, with the cause: alarm AlarmHigh in state ALARM. I did not launch these by hand."
 4. Show the table "response time by instance count": 1 instance 680 ms, 2 instances 257 ms.
-5. Show the scaling policy screenshot (`06`): "Target tracking, 50."
+5. Show the scaling policy screenshot (`07-asg-scaling-policy-50.png`): "Target tracking, 50."
 Say the honest points: "One run; the 3-instance number is a single 30-second window; there was a lag of about 5 minutes between CPU crossing 50% and the second instance serving traffic; scale-in takes about 19 minutes by design."
 
 ### Minute 11–12: E1 and the failure

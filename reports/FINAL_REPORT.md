@@ -18,7 +18,7 @@ Holiday and sale events (Hotstar, IRCTC Tatkal, Flipkart) produce sudden traffic
 | # | Deliverable | Status | Where |
 |---|---|---|---|
 | 1 | Live URL of a Load Balancer returning a response | Done (MEASURED) while the stack is up | Section 4 |
-| 2 | ASG dashboard screenshots showing instances launching | Console screenshots to be added by the author (the AWS console login is needed). The ASG activity history is already saved as raw data. | `screenshots/`, `results/evidence/asg_scaling_activities.json` |
+| 2 | ASG dashboard screenshots showing instances launching | **Done**: console screenshots of the ASG activity history, scaling policy, metrics, target group, load balancer and alarms | Section 9, `screenshots/`; raw data in `results/evidence/asg_scaling_activities.json` |
 | 3 | Load-testing report with response time vs instance count | Done (MEASURED) | Section 7, `reports/figures/e2_response_time_vs_instances.png` |
 | + | Companion: Docker autoscaling with Nginx (extra, not required by the brief) | Done (MEASURED); Kubernetes not done | Section 8, `reports/DOCKER_AUTOSCALING_GUIDE.md` |
 
@@ -266,46 +266,95 @@ Run 2 timeline (UTC): 19:17:07 CPU 58% → 2nd container; 19:17:20 CPU 56% → 3
 
 ---
 
-## 9. Screenshots
+## 9. Evidence: screenshots from the AWS console, browser and terminal (Deliverable 2)
 
-I cannot capture screenshots (they need your signed-in browser or terminal). Save yours in `screenshots/` using these names, so the report and viva refer to the same files.
+These are the author's own screenshots, taken during the experiment on 17 Nov 2026. The AWS account number visible in the console header and in ARNs has been **blacked out** in three of them; nothing else was altered. All files are in `screenshots/`. Timestamps in the Auto Scaling activity text are **UTC**; the console's "Date created" for the load balancer is shown in the author's local time (UTC+05:30).
 
-### A. AWS console and browser (Deliverable 2)
+### 9.1 The live URL answering through the load balancer (Deliverable 1)
 
-| File | What to capture | Why it matters |
-|---|---|---|
-| `01-alb-url-response.png` | Browser showing the live `/search?city=Goa&limit=5` response, with the ALB DNS name visible in the address bar | Deliverable 1: live URL through the load balancer |
-| `02-alb-details.png` | EC2 → Load balancers → the ALB (DNS name, listener on port 80, listener rules) | Shows the load balancer exists |
-| `03-target-group-healthy.png` | Target group `airbnb-soa-poc-search-tg` → Targets tab: instances **healthy** | Shows health checks and registration |
-| `04-asg-overview.png` | ASG `airbnb-soa-poc-search-asg` → Details: min 1, desired, max 3 | Shows the scaling limits |
-| `05-asg-activity-history.png` | ASG → **Activity** tab: "Launching a new EC2 instance" and "Terminating EC2 instance" rows with their causes | **Main proof of automatic scale-out and scale-in** |
-| `06-asg-scaling-policy.png` | ASG → Automatic scaling: target tracking policy, target value **50** | Shows the 50% CPU rule |
-| `07-asg-monitoring.png` | ASG → Monitoring: CPU utilization and instance count graphs | CloudWatch evidence |
-| `08-asg-instances.png` | ASG → Instance management: several InService instances | Shows more than one instance |
-| `09-ec2-instances.png` | EC2 → Instances: the instances launched by the ASG (running, then terminated ones) | Instances launching automatically |
+![Live URL response](../screenshots/01-alb-url-response.png)
 
-The Activity tab only keeps recent history, so if the screenshots are missing, the same events exist as raw data in `results/evidence/asg_scaling_activities.json`.
+**What it shows:** the browser response from `http://airbnb-soa-poc-alb-1748194001.ap-south-1.elb.amazonaws.com/search?city=Goa&limit=...`, a JSON document from the Search service: `"service":"search"`, `"dataset_size":50000`, `"result_count":3572` listings in Goa, and the first five results (id, city, title, nightly price, rating, bedrooms). **Why it matters:** this is a real response that came **through the Application Load Balancer** from an EC2 instance in the Auto Scaling Group, not from a laptop. (The stack has since been destroyed, so the link no longer works.)
 
-### B. Terminal screenshots to show how the tests were run
+### 9.2 The load balancer
 
-| File | What to capture |
-|---|---|
-| `10-k6-aws-e2-output.png` | The end of the k6 run (`results/raw/e2_k6_stdout.txt`): `http_reqs`, `http_req_duration` with p95, `http_req_failed` |
-| `11-terraform-apply-complete.png` | `terraform apply` finishing with "Apply complete" (re-create the stack if you need this) |
+![ALB details](../screenshots/02-alb-details.png)
 
-### C. Docker autoscaling (requires re-running the demo, about 15 minutes; commands in the Docker guide)
+**What it shows:** EC2 → Load balancers → `airbnb-soa-poc-alb`: type **Application**, scheme **Internet-facing**, status **Active**, spread over **two Availability Zones** (`ap-south-1a` and `ap-south-1b`), with its public DNS name and **one listener** ("Listeners and rules (1)"). The load balancer ARN line is blacked out (it contained the account number).
 
-| File | What to capture | Why |
-|---|---|---|
-| `12-docker-compose-ps-1.png` | `docker compose -p airbnb-autoscale -f docker/compose.autoscale.yaml ps` before the spike: **1** search container | Starting state |
-| `13-docker-autoscaler-log.png` | The autoscaler terminal showing `scale_out` lines (replicas 1 → 2 → 3, CPU above 50) | Proof the script made the decision |
-| `14-docker-compose-ps-3.png` | The same `ps` command at the peak: **3 or 4** search containers | Containers added |
-| `15-docker-stats.png` | `docker stats` at the peak: CPU per container | CPU evidence |
-| `16-docker-scale-in.png` | The autoscaler log showing `scale_in` and `ps` back to 1 container | Scale-in |
-| `17-docker-k6-output.png` | The k6 summary for the Docker run | Load test evidence |
-| `18-nginx-conf.png` | `docker/nginx.autoscale.conf` (the `resolver` and `proxy_pass http://$upstream:8000` lines) | Shows Nginx as the load balancer |
+![ALB details with listener table](../screenshots/03-alb-details-listeners.png)
 
-**Minimum set for the viva:** 01, 03, 05, 06, plus the graph `reports/figures/e2_response_time_vs_instances.png`. The rest are supporting evidence.
+**What it shows:** the same load balancer scrolled to the listener table (Protocol:Port, default action, rules). The listener on port 80 forwards `/search*` to the search target group.
+
+### 9.3 The target group and its health checks
+
+![Target group](../screenshots/04-target-group-healthy.png)
+
+**What it shows:** target group `airbnb-soa-poc-search-tg`: protocol **HTTP on port 8000**, target type **Instance**, attached to `airbnb-soa-poc-alb`, with **1 healthy** and **0 unhealthy** targets. **Why it matters:** the load balancer only sends traffic to targets that pass the `/health` check. This screenshot was taken after scale-in, when one instance remained.
+
+### 9.4 Automatic scale-out (E2): the main proof
+
+![ASG activity, E2 scale-out and scale-in](../screenshots/05-asg-activity-scale-out.png)
+
+**What it shows:** the Auto Scaling group list (`airbnb-soa-poc-search-asg` with **3 instances, 3/3 healthy**; the monolith and listing groups at 0) and the **Activity history**:
+- **17:13:03Z**: alarm `TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-...` in state ALARM triggered policy `airbnb-soa-poc-search-cpu-target-50`, "changing the desired capacity from **2 to 3**"; an instance was started at 17:13:13Z (`i-075d11a3d5b2685fe`).
+- **17:10:03Z**: the same alarm changed the desired capacity from **1 to 2**; an instance was started at 17:10:14Z (`i-071d4d07e38fefda6`).
+- **17:01:49Z**: `AlarmLow` triggered the same policy and removed an instance (**2 to 1**), a scale-in left over from E1.
+
+**Why it matters:** each launch states its **cause**: the CPU alarm fired and the scaling policy raised the desired capacity. Nobody launched these instances by hand. This is the evidence for "instances launching automatically when CPU is above 50%".
+
+### 9.5 Automatic replacement and scale-out during E1
+
+![ASG activity, E1 health-check failure](../screenshots/06-asg-activity-e1-health-failure.png)
+
+**What it shows (16:43–16:44Z, during the E1 overload test):**
+- **16:43:57Z**: "Terminating EC2 instance `i-0e467d94...`": the instance "was taken out of service in response to an **ELB system health check failure**".
+- **16:43:57Z**: a **replacement** instance was launched "in response to an unhealthy instance needing to be replaced".
+- **16:44:03Z**: `AlarmHigh` fired and raised the desired capacity **1 to 2** (instance started at 16:44:08Z).
+
+**Why it matters:** when one instance was driven far past its capacity it stopped answering health checks. The load balancer detected it, and Auto Scaling replaced it and added capacity automatically. It is documented honestly as a failure plus recovery (Section 6).
+
+### 9.6 The scaling policy (the 50% CPU rule)
+
+![Scaling policy](../screenshots/07-asg-scaling-policy-50.png)
+
+**What it shows:** dynamic scaling policy `airbnb-soa-poc-search-cpu-target-50`: policy type **Target tracking scaling**, **Enabled**, "as required to maintain **Average CPU utilization at 50**", "add or remove capacity units as required", instances need **120 seconds to warm up** before being included in the metric, and **scale-in enabled**. **Why it matters:** this is the "if CPU goes above 50%, add an instance" requirement from the brief, in the console.
+
+### 9.7 The Auto Scaling group's own metrics
+
+![ASG monitoring](../screenshots/08-asg-monitoring-capacity.png)
+
+**What it shows:** the group's capacity charts over about three hours: **minimum 1**, **maximum 3**, **desired capacity** rising to 2 and 3 and then falling back to 1 (twice: the E1 and E2 episodes), **in-service instances** following it, and a short spike in pending instances at launch. **Why it matters:** an independent CloudWatch view of the same scale-out and scale-in recorded by my own 15-second sampler.
+
+### 9.8 CPU utilization
+
+![CPU](../screenshots/09-ec2-monitoring-cpu.png)
+
+**What it shows:** the CPU Utilization panel for the group's instances: it rises sharply during the test periods (to roughly 70–76% in the one-minute averages) and drops back to near zero afterwards, together with network in/out peaks at the same times. **Why it matters:** the CPU crossed the **50% target** and fell back, which is what triggered the alarms above. The exact figures, with the 50% line, are in the graph `e2_cpu_over_time.png` (Section 7).
+
+### 9.9 CloudWatch alarms created by the scaling policy
+
+![CloudWatch alarms](../screenshots/10-cloudwatch-alarms.png)
+
+**What it shows:** CloudWatch → Alarms (8). Target tracking creates a **pair of alarms per Auto Scaling group**: `AlarmHigh` (add capacity) and `AlarmLow` (remove capacity). For the search group, `AlarmHigh` is **OK** (CPU below target) and `AlarmLow` is **In alarm** (CPU low, so extra capacity is not needed), which is the expected state after scale-in. The listing and monolith groups show **Insufficient data** because they run **zero instances**. **Why it matters:** it shows that AWS itself created and manages the CloudWatch alarms that drive scaling; I did not write them.
+
+### 9.10 Response time against number of instances (the report's key graph)
+
+![Response time vs instances](figures/e2_response_time_vs_instances.png)
+
+Generated from the recorded k6 data and the instance counts (Section 7). The same figure is also in the author's submission document.
+
+### 9.11 Docker autoscaling: containers behind Nginx
+
+![Docker compose ps](../screenshots/11-docker-compose-ps-two-containers.png)
+
+**What it shows:** `watch docker compose -p airbnb-autoscale ... ps` (WSL clock, Tue 17 Nov 20:27:29): the **gateway** (Nginx, `0.0.0.0:18081->80`), **postgres** (healthy), `search-1` (up 10 minutes) and **`search-2` (up 6 minutes)**. **Why it matters:** the autoscaler script started a second `search` container about four minutes after the first, which is the scale-out of the Docker companion (Section 8), with Nginx as the load balancer in front. The matching graph is `docker_p8_response_time_vs_containers.png`.
+
+![Docker response time vs containers](figures/docker_p8_response_time_vs_containers.png)
+
+### 9.12 Screenshots still worth adding (optional)
+
+The set above covers every requirement. If time allows, also capture: the k6 end-of-run summary (`results/raw/e2_k6_stdout.txt`), the autoscaler terminal showing `scale_out` and `scale_in` lines, and `docker stats` at the peak of a Docker run.
 
 ---
 
@@ -335,7 +384,7 @@ The Activity tab only keeps recent history, so if the screenshots are missing, t
 | Public IPv4 addresses (instances + ALB) | $0.005 each / hour |
 | **Whole stack, running** | **about $0.10 – 0.16 / hour** |
 
-The stack existed from about 16:28 to 20:47 UTC on 17 Nov (about 4.3 hours), so its cost is **estimated** at roughly $0.4 – 0.7 (the Billing console shows the actual figure). Leaving it running for a month would have cost roughly $90–110 (about the whole $100 credit), which is why it was destroyed once the evidence was saved. No NAT gateway, Redis or load-generator instance was created. A separate demo `t3.small` (about $19/month) exists outside this stack.
+According to the console, the load balancer was created at 20:23 local time (UTC+05:30), i.e. **14:53 UTC** on 17 Nov, in the first `terraform apply`; the RDS database was created in the same apply, and the first instance launched at about 16:35 UTC. The stack was destroyed at 20:47 UTC, so it existed for about **5.9 hours** (about 1.7 hours of load balancer and database only, then about 4.2 hours with instances). Its cost is **estimated** at roughly $0.5 – 0.8 (the Billing console shows the actual figure). Leaving it running for a month would have cost roughly $90–110 (about the whole $100 credit), which is why it was destroyed once the evidence was saved. No NAT gateway, Redis or load-generator instance was created. A separate demo `t3.small` (about $19/month) exists outside this stack.
 
 ---
 
@@ -368,3 +417,60 @@ Remaining manual step for the account owner: detach the temporary extra IAM perm
 | Docker summaries, buckets and autoscaler samples | `results/evidence/docker_p5_*`, `docker_p8_*` | Yes |
 | k6 summaries, 30 s buckets, ASG samples, CloudWatch JSON, ASG activity history, run log | `results/evidence/` (account ID redacted) | Yes |
 | Graphs | `reports/figures/` | Yes |
+
+---
+
+## Appendix A. How it all fits together, in plain language
+
+1. **The application.** A search service (written in Python with FastAPI) answers requests like "show me listings in Goa". Each search deliberately does about 80 milliseconds of CPU work, so that a busy server really does get busy. The data (50,000 listings and the bookings) lives in a PostgreSQL database.
+2. **Docker.** The service and everything it needs is packed into a **Docker image**, so it runs identically on my laptop and on an AWS server. The image is stored in **ECR**, Amazon's private image store.
+3. **The servers.** On AWS, each server is an **EC2 instance** (a small virtual machine). A **launch template** is the recipe for one: which machine type, which security rules, and a start-up script that installs Docker, downloads the image from ECR and runs it. Because the recipe is automatic, a new server starts the application **without anyone logging in**.
+4. **The load balancer.** Users never talk to a server directly. They talk to the **Application Load Balancer**, which hands each request to one of the **healthy** servers. It checks `/health` on every server every 20 seconds; a server that stops answering is taken out of rotation.
+5. **The Auto Scaling Group.** This keeps between 1 and 3 servers running. A **target-tracking policy** says: "keep the average CPU at about 50%". AWS creates two CloudWatch alarms for that: one that fires when CPU stays high (add a server) and one when it stays low (remove one). So scaling is a rule, not a person.
+6. **The shared database.** All servers use the **same RDS database**. If each server had its own database, a booking made on one server would be invisible on the others.
+7. **Terraform.** Everything above is written as code, so the whole environment can be created with one command and removed with another. That is why it was safe to destroy it after collecting the evidence.
+8. **k6 (the test).** A load-testing tool that sends a chosen number of requests per second. In E2 it sent 4 per second, rose to 16 per second (just above what one server can handle, about 15), held that for 10 minutes, then dropped back to 4.
+9. **What happened.** With one server, CPU went to about 76% and response times grew past one second. CPU stayed above 50%, so the alarm fired and the Auto Scaling Group started a second server (17:10) and then a third (17:13). Response times fell back to around 200 milliseconds. When the traffic dropped, CPU fell, the low alarm fired about 19 minutes later, and the extra servers were removed (17:36 and 17:37). The screenshots in Section 9 show each of these steps in the AWS console.
+10. **The Docker companion.** The same idea on my laptop: Nginx plays the load balancer, and because Docker has no autoscaler of its own, a small script I wrote watches CPU and starts or stops containers. It reproduces the behaviour, but it is a teaching model, not a replacement for AWS.
+
+## Appendix B. Glossary
+
+| Term | Meaning |
+|---|---|
+| **Auto Scaling Group (ASG)** | AWS service that keeps a chosen range of identical servers running and adds or removes them by rule |
+| **Target tracking policy** | A scaling rule of the form "keep this metric (here CPU) near this value (50%)" |
+| **ALB (Application Load Balancer)** | AWS service that spreads web requests across servers and health-checks them |
+| **Target group** | The list of servers behind a load balancer, with the health-check settings |
+| **EC2 / instance** | A virtual server; `t3.micro` has 2 vCPUs and 1 GB of memory |
+| **Launch template** | The saved recipe an ASG uses to create each server |
+| **ECR** | Amazon's private storage for Docker images |
+| **RDS** | Amazon's managed database service (here PostgreSQL) |
+| **CloudWatch** | AWS monitoring: metrics (CPU etc.) and alarms |
+| **Warm-up** | Time (120 s) a new server is ignored when averaging CPU, so it is not counted before it can serve |
+| **p50 / p95** | Median response time / the time that 95% of requests beat; p95 reveals the slow tail that averages hide |
+| **k6, virtual user, arrival rate** | Load-testing tool; a simulated user; a fixed number of new requests per second regardless of how slow the server is |
+| **Docker / container / image** | Packaging that runs an app the same everywhere; a running copy; the saved package |
+| **Nginx** | Web server used here as a reverse proxy and load balancer in the Docker setup |
+| **Terraform** | Tool that creates cloud resources from code (`plan`, `apply`, `destroy`) |
+| **IMDSv2** | The more secure way for software on an instance to read its own metadata; required in the launch template |
+| **vCPU quota** | The AWS limit on how many virtual CPUs the account may run (8 here) |
+
+## Appendix C. What was done, in order (project log)
+
+All times UTC on 17 Nov 2026 unless stated; the log is reconstructed from the saved run log, the Auto Scaling history and the console.
+
+| Step | What | Outcome |
+|---|---|---|
+| 1 | Reconciled the two copies of the repository; fixed deployment settings (2 worker processes, `t3.micro`, IMDSv2) | One canonical branch, `aws-deploy-fixes` |
+| 2 | Validated the Terraform; wrote a cost plan; chose to share one RDS database and drop Redis | Validated; about $0.10 – 0.16 per hour estimated |
+| 3 | Found the account's EC2 quota is 8 vCPU (2 used by the demo) | Only Search deployed; Listing and Booking left at 0 |
+| 4 | Built and pushed the 4 images to ECR (about 14:47 – 14:52) | Images verified in ECR |
+| 5 | First full `terraform apply` (about 14:53) | Network, ALB and RDS created; stopped at a missing IAM permission (`iam:CreateRole`) |
+| 6 | Permission added by the account owner; apply re-run | Stopped once more on a short Auto Scaling service-linked-role delay; third run completed |
+| 7 | First search instance launched (about 16:35) and passed health checks | Live URL answered `/search` |
+| 8 | **E1** (16:39 – 16:45): ramp 5 to 30 req/s on one instance | Capacity about 15 req/s; overload, health-check failure, automatic replacement and scale-out |
+| 9 | **E2** (17:02 – 17:37): 4 to 16 req/s spike | Scale-out at 17:10 and 17:13; scale-in at 17:36 and 17:37 |
+| 10 | Collected CloudWatch metrics and the Auto Scaling activity history | Saved in `results/evidence/` |
+| 11 | **Docker companion** (18:59 – 19:30): two runs at 5 and 8 req/s | Containers scaled by CPU; flapping in run 1 |
+| 12 | Report, graphs, viva guides written; screenshots taken by the author | This document |
+| 13 | **Destroyed the stack** (20:37 – 20:47): 52 resources | Verified: no billable resources remain; demo EC2 untouched (stopped) |
