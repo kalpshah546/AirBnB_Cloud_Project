@@ -1,0 +1,4 @@
+E1 start=2026-11-17T16:39:16Z
+E1 end=2026-11-17T16:45:19Z
+E2 start=2026-11-17T17:02:16Z normal=4 peak=16 warm=120 ramp=120 hold=600 down=60 cool=1200
+E2 end=2026-11-17T17:37:20Z

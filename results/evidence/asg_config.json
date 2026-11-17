@@ -1,0 +1,111 @@
+{
+    "AutoScalingGroups": [
+        {
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg",
+            "LaunchTemplate": {
+                "LaunchTemplateId": "lt-0872c20fa2ca33183",
+                "LaunchTemplateName": "airbnb-soa-poc-search-04ad7336dbd13e569514a999b6",
+                "Version": "1"
+            },
+            "MinSize": 1,
+            "MaxSize": 3,
+            "DesiredCapacity": 1,
+            "DefaultCooldown": 300,
+            "AvailabilityZones": [
+                "ap-south-1b",
+                "ap-south-1a"
+            ],
+            "AvailabilityZoneIds": [
+                "aps1-az3",
+                "aps1-az1"
+            ],
+            "LoadBalancerNames": [],
+            "TargetGroupARNs": [
+                "arn:aws:elasticloadbalancing:ap-south-1:<ACCOUNT_ID>:targetgroup/airbnb-soa-poc-search-tg/48eae2d69137fc01"
+            ],
+            "HealthCheckType": "ELB",
+            "HealthCheckGracePeriod": 240,
+            "Instances": [
+                {
+                    "InstanceId": "i-0a34afc0ef8fd3fb4",
+                    "InstanceType": "t3.micro",
+                    "AvailabilityZone": "ap-south-1a",
+                    "AvailabilityZoneId": "aps1-az1",
+                    "LifecycleState": "InService",
+                    "HealthStatus": "Healthy",
+                    "LaunchTemplate": {
+                        "LaunchTemplateId": "lt-0872c20fa2ca33183",
+                        "LaunchTemplateName": "airbnb-soa-poc-search-04ad7336dbd13e569514a999b6",
+                        "Version": "1"
+                    },
+                    "ProtectedFromScaleIn": false
+                }
+            ],
+            "CreatedTime": "2026-11-17T16:35:50.266000+00:00",
+            "SuspendedProcesses": [],
+            "VPCZoneIdentifier": "subnet-09b83140e8c7b951d,subnet-093d9fcafbe13ddfd",
+            "EnabledMetrics": [
+                {
+                    "Metric": "GroupMinSize",
+                    "Granularity": "1Minute"
+                },
+                {
+                    "Metric": "GroupMaxSize",
+                    "Granularity": "1Minute"
+                },
+                {
+                    "Metric": "GroupInServiceInstances",
+                    "Granularity": "1Minute"
+                },
+                {
+                    "Metric": "GroupPendingInstances",
+                    "Granularity": "1Minute"
+                },
+                {
+                    "Metric": "GroupDesiredCapacity",
+                    "Granularity": "1Minute"
+                }
+            ],
+            "Tags": [
+                {
+                    "ResourceId": "airbnb-soa-poc-search-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Name",
+                    "Value": "airbnb-soa-poc-search",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "airbnb-soa-poc-search-asg",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Project",
+                    "Value": "airbnb-soa-poc",
+                    "PropagateAtLaunch": true
+                }
+            ],
+            "TerminationPolicies": [
+                "Default"
+            ],
+            "NewInstancesProtectedFromScaleIn": false,
+            "ServiceLinkedRoleARN": "arn:aws:iam::<ACCOUNT_ID>:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+            "DefaultInstanceWarmup": 120,
+            "TrafficSources": [
+                {
+                    "Identifier": "arn:aws:elasticloadbalancing:ap-south-1:<ACCOUNT_ID>:targetgroup/airbnb-soa-poc-search-tg/48eae2d69137fc01",
+                    "Type": "elbv2"
+                }
+            ],
+            "AvailabilityZoneDistribution": {
+                "CapacityDistributionStrategy": "balanced-best-effort"
+            },
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "default"
+            },
+            "InstanceLifecyclePolicy": {
+                "RetentionTriggers": {
+                    "TerminateHookAbandon": "terminate"
+                }
+            }
+        }
+    ]
+}

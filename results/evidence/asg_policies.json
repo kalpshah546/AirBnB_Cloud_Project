@@ -1,0 +1,30 @@
+{
+    "ScalingPolicies": [
+        {
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "PolicyName": "airbnb-soa-poc-search-cpu-target-50",
+            "PolicyARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50",
+            "PolicyType": "TargetTrackingScaling",
+            "StepAdjustments": [],
+            "EstimatedInstanceWarmup": 120,
+            "Alarms": [
+                {
+                    "AlarmName": "TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c",
+                    "AlarmARN": "arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c"
+                },
+                {
+                    "AlarmName": "TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34",
+                    "AlarmARN": "arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34"
+                }
+            ],
+            "TargetTrackingConfiguration": {
+                "PredefinedMetricSpecification": {
+                    "PredefinedMetricType": "ASGAverageCPUUtilization"
+                },
+                "TargetValue": 50.0,
+                "DisableScaleIn": false
+            },
+            "Enabled": true
+        }
+    ]
+}
