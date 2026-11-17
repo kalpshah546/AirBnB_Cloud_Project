@@ -11,14 +11,14 @@ locals {
     listing = {
       priority     = 20
       paths        = ["/listings", "/listings/*"]
-      min_size     = var.min_capacity
-      desired_size = var.desired_capacity
+      min_size     = var.support_min_capacity
+      desired_size = var.support_desired_capacity
     }
     booking = {
       priority     = 30
       paths        = ["/bookings", "/bookings/*"]
-      min_size     = var.min_capacity
-      desired_size = var.desired_capacity
+      min_size     = var.support_min_capacity
+      desired_size = var.support_desired_capacity
     }
     monolith = {
       priority     = 40

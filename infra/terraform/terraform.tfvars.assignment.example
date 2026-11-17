@@ -8,6 +8,9 @@ cpu_credits       = "unlimited"
 cpu_bound_workers = 2          # 2 vCPUs -> 2 uvicorn workers so CPU can pass 50%
 
 min_capacity     = 1
+# Quota is 8 vCPU and the demo uses 2: only search scales. Set both to 1 only if the quota allows.
+support_min_capacity     = 0
+support_desired_capacity = 0
 desired_capacity = 1
 max_capacity     = 3 # per-service ceiling; lower it if your EC2 vCPU quota is small
 
