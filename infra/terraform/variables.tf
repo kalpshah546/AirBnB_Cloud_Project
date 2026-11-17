@@ -169,3 +169,21 @@ variable "booking_async" {
   default     = true
 }
 
+
+variable "create_redis" {
+  description = "Create the ElastiCache Redis node. Redis is only a read cache (cache-aside); set false to save cost. All shared state lives in Postgres."
+  type        = bool
+  default     = true
+}
+
+variable "support_min_capacity" {
+  description = "Minimum instances for the listing and booking ASGs. Set 0 with support_desired_capacity = 0 to leave them off when the EC2 vCPU quota is tight (only search then serves traffic)."
+  type        = number
+  default     = 1
+}
+
+variable "support_desired_capacity" {
+  description = "Desired instances for the listing and booking ASGs."
+  type        = number
+  default     = 1
+}

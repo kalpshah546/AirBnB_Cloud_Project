@@ -3,28 +3,28 @@ locals {
 
   service_config = {
     search = {
-      priority       = 10
-      paths          = ["/search", "/search/*"]
-      min_size       = var.min_capacity
-      desired_size   = var.desired_capacity
+      priority     = 10
+      paths        = ["/search", "/search/*"]
+      min_size     = var.min_capacity
+      desired_size = var.desired_capacity
     }
     listing = {
-      priority       = 20
-      paths          = ["/listings", "/listings/*"]
-      min_size       = var.min_capacity
-      desired_size   = var.desired_capacity
+      priority     = 20
+      paths        = ["/listings", "/listings/*"]
+      min_size     = var.support_min_capacity
+      desired_size = var.support_desired_capacity
     }
     booking = {
-      priority       = 30
-      paths          = ["/bookings", "/bookings/*"]
-      min_size       = var.min_capacity
-      desired_size   = var.desired_capacity
+      priority     = 30
+      paths        = ["/bookings", "/bookings/*"]
+      min_size     = var.support_min_capacity
+      desired_size = var.support_desired_capacity
     }
     monolith = {
-      priority       = 40
-      paths          = ["/monolith", "/monolith/*"]
-      min_size       = 0
-      desired_size   = 0
+      priority     = 40
+      paths        = ["/monolith", "/monolith/*"]
+      min_size     = 0
+      desired_size = 0
     }
   }
 
@@ -38,15 +38,15 @@ locals {
     DB_PASSWORD          = local.database_password
     DB_POOL_MIN          = "1"
     DB_POOL_MAX          = tostring(var.db_pool_max)
-    CACHE_HOST           = aws_elasticache_cluster.redis.cache_nodes[0].address
-    CACHE_PORT           = tostring(aws_elasticache_cluster.redis.cache_nodes[0].port)
-    CACHE_ENABLED        = tostring(var.cache_enabled)
+    CACHE_HOST           = var.create_redis ? aws_elasticache_cluster.redis[0].cache_nodes[0].address : "localhost"
+    CACHE_PORT           = var.create_redis ? tostring(aws_elasticache_cluster.redis[0].cache_nodes[0].port) : "6379"
+    CACHE_ENABLED        = tostring(var.create_redis && var.cache_enabled)
     BOOKING_ASYNC        = tostring(var.booking_async)
-    SQS_QUEUE_URL         = aws_sqs_queue.bookings.url
-    SQS_QUEUE_NAME        = aws_sqs_queue.bookings.name
-    LISTING_DATASET_SIZE  = tostring(var.dataset_size)
-    SEARCH_CPU_WORK_MS    = tostring(var.search_cpu_work_ms)
-    SEARCH_MAX_WORK_MS    = "500"
+    SQS_QUEUE_URL        = aws_sqs_queue.bookings.url
+    SQS_QUEUE_NAME       = aws_sqs_queue.bookings.name
+    LISTING_DATASET_SIZE = tostring(var.dataset_size)
+    SEARCH_CPU_WORK_MS   = tostring(var.search_cpu_work_ms)
+    SEARCH_MAX_WORK_MS   = "500"
   }
 }
 
@@ -54,7 +54,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = { Name = "${var.project_name}-vpc" }
+  tags                 = { Name = "${var.project_name}-vpc" }
 }
 
 resource "aws_internet_gateway" "main" {
@@ -63,20 +63,20 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_subnet" "public" {
-  for_each = { for index, az in local.azs : az => index }
+  for_each                = { for index, az in local.azs : az => index }
   vpc_id                  = aws_vpc.main.id
   availability_zone       = each.key
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value)
   map_public_ip_on_launch = true
-  tags = { Name = "${var.project_name}-public-${each.value + 1}" }
+  tags                    = { Name = "${var.project_name}-public-${each.value + 1}" }
 }
 
 resource "aws_subnet" "private" {
-  for_each = { for index, az in local.azs : az => index }
+  for_each          = { for index, az in local.azs : az => index }
   vpc_id            = aws_vpc.main.id
   availability_zone = each.key
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value + 10)
-  tags = { Name = "${var.project_name}-private-${each.value + 1}" }
+  tags              = { Name = "${var.project_name}-private-${each.value + 1}" }
 }
 
 resource "aws_route_table" "public" {

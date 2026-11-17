@@ -4,7 +4,7 @@ resource "aws_ecr_repository" "images" {
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
   force_delete = true
-  tags = { Project = var.project_name, Service = each.key }
+  tags         = { Project = var.project_name, Service = each.key }
 }
 
 resource "aws_sqs_queue" "bookings" {
@@ -12,7 +12,7 @@ resource "aws_sqs_queue" "bookings" {
   visibility_timeout_seconds = 60
   message_retention_seconds  = 345600
   receive_wait_time_seconds  = 10
-  tags = { Project = var.project_name }
+  tags                       = { Project = var.project_name }
 }
 
 resource "random_password" "db" {
@@ -53,22 +53,24 @@ resource "aws_db_instance" "postgres" {
   apply_immediately          = true
   deletion_protection        = false
   skip_final_snapshot        = true
-  tags = { Name = "${var.project_name}-postgres", Project = var.project_name }
+  tags                       = { Name = "${var.project_name}-postgres", Project = var.project_name }
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
+  count      = var.create_redis ? 1 : 0
   name       = "${var.project_name}-redis-subnets"
   subnet_ids = [for subnet in aws_subnet.private : subnet.id]
 }
 
 resource "aws_elasticache_cluster" "redis" {
+  count                = var.create_redis ? 1 : 0
   cluster_id           = "${var.project_name}-redis"
   engine               = "redis"
   node_type            = var.redis_node_type
   num_cache_nodes      = 1
   parameter_group_name = "default.redis7"
   port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  subnet_group_name    = aws_elasticache_subnet_group.redis[0].name
   security_group_ids   = [aws_security_group.cache.id]
-  tags = { Name = "${var.project_name}-redis", Project = var.project_name }
+  tags                 = { Name = "${var.project_name}-redis", Project = var.project_name }
 }
