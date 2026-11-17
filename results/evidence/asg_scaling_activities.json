@@ -1,0 +1,112 @@
+{
+    "Activities": [
+        {
+            "ActivityId": "98d860f2-5bd2-4bc3-9e4e-5bab3fe274f3",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Terminating EC2 instance: i-071d4d07e38fefda6",
+            "Cause": "At 2026-11-17T17:36:49Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34 in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 2 to 1.  At 2026-11-17T17:37:00Z an instance was taken out of service in response to a difference between desired and actual capacity, shrinking the capacity from 2 to 1.  At 2026-11-17T17:37:00Z instance i-071d4d07e38fefda6 was selected for termination.",
+            "StartTime": "2026-11-17T17:37:00.206000+00:00",
+            "EndTime": "2026-11-17T17:42:42+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"LessThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":15,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":35},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"ALARM\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933843649,\"StateChangeTime\":1794936709738}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "f321e20d-01ba-4c57-b3c2-059c0795ae41",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Terminating EC2 instance: i-075d11a3d5b2685fe",
+            "Cause": "At 2026-11-17T17:35:49Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34 in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 3 to 2.  At 2026-11-17T17:35:59Z an instance was taken out of service in response to a difference between desired and actual capacity, shrinking the capacity from 3 to 2.  At 2026-11-17T17:35:59Z instance i-075d11a3d5b2685fe was selected for termination.",
+            "StartTime": "2026-11-17T17:35:59.706000+00:00",
+            "EndTime": "2026-11-17T17:41:21+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az1\",\"Subnet ID\":\"subnet-09b83140e8c7b951d\",\"Availability Zone\":\"ap-south-1a\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"LessThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":15,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":35},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"ALARM\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933843649,\"StateChangeTime\":1794936709738}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "d30687a9-fe77-35e5-ab2d-9c8ea6914663",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Launching a new EC2 instance: i-075d11a3d5b2685fe",
+            "Cause": "At 2026-11-17T17:13:03Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 2 to 3.  At 2026-11-17T17:13:13Z an instance was started in response to a difference between desired and actual capacity, increasing the capacity from 2 to 3.",
+            "StartTime": "2026-11-17T17:13:14.445000+00:00",
+            "EndTime": "2026-11-17T17:15:19+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az1\",\"Subnet ID\":\"subnet-09b83140e8c7b951d\",\"Availability Zone\":\"ap-south-1a\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"GreaterThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":3,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":50},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"ALARM\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933358951,\"StateChangeTime\":1794935403459}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "6d5687a9-f390-0a5a-37c9-e7d6012897b1",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Launching a new EC2 instance: i-071d4d07e38fefda6",
+            "Cause": "At 2026-11-17T17:10:03Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 1 to 2.  At 2026-11-17T17:10:14Z an instance was started in response to a difference between desired and actual capacity, increasing the capacity from 1 to 2.",
+            "StartTime": "2026-11-17T17:10:15.810000+00:00",
+            "EndTime": "2026-11-17T17:12:20+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"GreaterThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":3,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":50},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"OK\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933358951,\"StateChangeTime\":1794935403459}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "6362fed4-4903-47ff-be98-870b1a03287a",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Terminating EC2 instance: i-015e58c9a77be512b",
+            "Cause": "At 2026-11-17T17:01:49Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34 in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 2 to 1.  At 2026-11-17T17:01:58Z an instance was taken out of service in response to a difference between desired and actual capacity, shrinking the capacity from 2 to 1.  At 2026-11-17T17:01:58Z instance i-015e58c9a77be512b was selected for termination.",
+            "StartTime": "2026-11-17T17:01:58.698000+00:00",
+            "EndTime": "2026-11-17T17:07:41+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"LessThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":15,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":35},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmLow-a809b67a-552b-4885-97e0-23a07e1d0c34\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"OK\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933843649,\"StateChangeTime\":1794934909738}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "27b687a9-93f6-d725-6397-29668e8b075a",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Launching a new EC2 instance: i-0a34afc0ef8fd3fb4",
+            "Cause": "At 2026-11-17T16:44:03Z a monitor alarm TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c in state ALARM triggered policy airbnb-soa-poc-search-cpu-target-50 changing the desired capacity from 1 to 2.  At 2026-11-17T16:44:08Z an instance was started in response to a difference between desired and actual capacity, increasing the capacity from 1 to 2.",
+            "StartTime": "2026-11-17T16:44:09.525000+00:00",
+            "EndTime": "2026-11-17T16:46:14+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az1\",\"Subnet ID\":\"subnet-09b83140e8c7b951d\",\"Availability Zone\":\"ap-south-1a\",\"InvokingAlarms\":[{\"AlarmArn\":\"arn:aws:cloudwatch:ap-south-1:<ACCOUNT_ID>:alarm:TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"EvaluateLowSampleCountPercentile\":\"\",\"ComparisonOperator\":\"GreaterThanThreshold\",\"TreatMissingData\":\"\",\"Statistic\":\"AVERAGE\",\"StatisticType\":\"Statistic\",\"Period\":60,\"EvaluationPeriods\":3,\"Unit\":null,\"Namespace\":\"AWS/EC2\",\"Threshold\":50},\"AlarmName\":\"TargetTracking-airbnb-soa-poc-search-asg-AlarmHigh-d455dc6d-fa6b-4b2d-bc69-9fd44618446c\",\"AlarmDescription\":\"DO NOT EDIT OR DELETE. For TargetTrackingScaling policy arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:scalingPolicy:064a7b4e-a62b-4c68-ab7e-690d1379e9a3:autoScalingGroupName/airbnb-soa-poc-search-asg:policyName/airbnb-soa-poc-search-cpu-target-50.\",\"AWSAccountId\":\"<ACCOUNT_ID>\",\"OldStateValue\":\"INSUFFICIENT_DATA\",\"Region\":\"Asia Pacific (Mumbai)\",\"NewStateValue\":\"ALARM\",\"AlarmConfigurationUpdatedTimestamp\":1794933358951,\"StateChangeTime\":1794933843440}]}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "746687a9-934d-f539-5ba8-d4fe75e6ae13",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Launching a new EC2 instance: i-015e58c9a77be512b",
+            "Cause": "At 2026-11-17T16:43:57Z an instance was launched in response to an unhealthy instance needing to be replaced.",
+            "StartTime": "2026-11-17T16:43:58.717000+00:00",
+            "EndTime": "2026-11-17T16:46:03+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\"}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "339687a9-9336-2144-6987-39fb47ac9588",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Terminating EC2 instance: i-0e467d9450525be38",
+            "Cause": "At 2026-11-17T16:43:57Z an instance was taken out of service in response to an ELB system health check failure.",
+            "StartTime": "2026-11-17T16:43:57.192000+00:00",
+            "EndTime": "2026-11-17T16:49:19+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\"}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        },
+        {
+            "ActivityId": "2ef687a9-75a3-27df-254b-1f70ec5a103b",
+            "AutoScalingGroupName": "airbnb-soa-poc-search-asg",
+            "Description": "Launching a new EC2 instance: i-0e467d9450525be38",
+            "Cause": "At 2026-11-17T16:35:50Z a user request created an AutoScalingGroup changing the desired capacity from 0 to 1.  At 2026-11-17T16:35:51Z an instance was started in response to a difference between desired and actual capacity, increasing the capacity from 0 to 1.",
+            "StartTime": "2026-11-17T16:35:52.649000+00:00",
+            "EndTime": "2026-11-17T16:37:57+00:00",
+            "StatusCode": "Successful",
+            "Progress": 100,
+            "Details": "{\"Availability Zone ID\":\"aps1-az3\",\"Subnet ID\":\"subnet-093d9fcafbe13ddfd\",\"Availability Zone\":\"ap-south-1b\"}",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:ap-south-1:<ACCOUNT_ID>:autoScalingGroup:ac8f4414-373f-4a36-9b2a-ced5ba8e6ddb:autoScalingGroupName/airbnb-soa-poc-search-asg"
+        }
+    ]
+}

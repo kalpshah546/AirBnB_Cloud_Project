@@ -1,0 +1,4 @@
+healthy_instances,windows_30s,p50_median_ms,p95_median_ms,p95_max_ms
+1,12,366.3,679.8,1308.1
+2,6,144.6,257.4,276.8
+3,1,145.1,203.2,203.2

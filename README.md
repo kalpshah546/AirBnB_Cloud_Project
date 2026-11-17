@@ -372,3 +372,45 @@ The Terraform destroy removes the ALB, EC2 ASGs, RDS, Redis, SQS, ECR repositori
 - [CloudWatch detailed monitoring for Auto Scaling instances](https://docs.aws.amazon.com/autoscaling/ec2/userguide/enable-as-instance-metrics.html)
 - [k6 scenarios](https://grafana.com/docs/k6/latest/using-k6/scenarios/)
 - [k6 thresholds](https://grafana.com/docs/k6/latest/using-k6/thresholds/)
+
+## AWS autoscaling assignment: reproduce
+
+Result summary and graphs: [`reports/FINAL_REPORT.md`](reports/FINAL_REPORT.md). Viva notes: [`docs/VIVA_GUIDE.md`](docs/VIVA_GUIDE.md).
+
+**Prerequisites (WSL Ubuntu):** Terraform 1.9.x, AWS CLI v2, Docker, k6. Use a scoped **IAM user**, never the root account, and never put keys in the repository. Check with `aws sts get-caller-identity`.
+
+```bash
+# 1. Settings (the file is gitignored)
+cp infra/terraform/terraform.tfvars.assignment.example infra/terraform/terraform.tfvars
+#    set create_budget=false or a real budget_alert_email; keep max_capacity within your vCPU quota
+
+# 2. Create only the ECR repositories, then build and push the images
+cd infra/terraform && terraform init
+terraform apply -var-file=terraform.tfvars -target=aws_ecr_repository.images
+cd ../.. && ./scripts/build-push.sh
+
+# 3. Create the rest (about 10-15 min, RDS is the slow part)
+cd infra/terraform && terraform apply -var-file=terraform.tfvars
+terraform output alb_base_url        # the live URL; test: <url>/search?city=Goa&limit=5
+
+# 4. E1 capacity test + monitor (run both; CSV/JSON go to results/raw/)
+export BASE_URL=$(terraform output -raw alb_base_url)
+export ASG=airbnb-soa-poc-search-asg
+export TG_ARN=$(aws elbv2 describe-target-groups --names airbnb-soa-poc-search-tg --query 'TargetGroups[0].TargetGroupArn' --output text)
+INTERVAL=15 ./scripts/monitor-asg.sh results/raw/e1_asg_samples.csv &
+k6 run -e BASE_URL=$BASE_URL -e RATE_MAX=30 -e START_RATE=5 --summary-export results/raw/e1_summary.json \
+   --out csv=results/raw/e1_requests.csv loadtest/k6/fixed-capacity.js
+
+# 5. E2 spike (about 35 min; wait until the ASG is back at 1 instance first)
+k6 run -e BASE_URL=$BASE_URL -e NORMAL_RPS=4 -e PEAK_RPS=16 -e WARM_S=120 -e RAMP_S=120 -e HOLD_S=600 -e DOWN_S=60 -e COOL_S=1200 \
+   --summary-export results/raw/e2_summary.json --out csv=results/raw/e2_requests.csv loadtest/k6/search-spike.js
+
+# 6. Analysis and graphs (WSL has no matplotlib, so use a container)
+python3 analysis/bucket_k6.py results/raw/e2_requests.csv 30 results/raw/e2_buckets_30s.csv
+docker run --rm -v "$PWD":/w -w /w python:3.12-slim sh -c "pip -q install matplotlib && python analysis/report_plots.py"
+
+# 7. Destroy everything when the evidence is saved (billing runs until then)
+cd infra/terraform && terraform destroy -var-file=terraform.tfvars
+```
+
+Notes: CloudWatch exports (CPU, in-service instances, ALB metrics) and the ASG activity history were collected with `aws cloudwatch get-metric-statistics` and `aws autoscaling describe-scaling-activities` and are stored in `results/evidence/`. The raw k6 request CSVs are large and gitignored; back them up separately.
