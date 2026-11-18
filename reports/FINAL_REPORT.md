@@ -405,6 +405,8 @@ The console shows the load balancer was created at **14:53 UTC** and I destroyed
 
 **Shut down (done):** `terraform destroy` ran from 20:37 to 20:47 UTC and removed all **52 resources**. A check of the Mumbai region afterwards found no load balancers, target groups, Auto Scaling groups, databases, caches, image repositories, queues, extra networks, NAT gateways, Elastic IPs or project IAM roles. The separate demo server was **not** part of the stack and wasn't touched; it is stopped, with its data intact. (Evidence: `results/evidence/destroy_verification.txt`.)
 
+**Shut down a second time (done):** later the same evening I tried to rebuild the stack so I could check the rebuild instructions. The first rebuild attempts failed (the account had since opted in to a Delhi "local zone", which broke the zone selection; this is fixed in `infra/terraform/versions.tf`), and the half-built stack was destroyed again, finishing at about 22:48 UTC. A final check of the Mumbai region found **nothing left**: no load balancers, target groups, Auto Scaling groups, launch templates, databases, DB subnet groups, caches, image repositories, queues, extra VPCs, NAT gateways, Elastic IPs, project IAM roles, dashboards or alarms. The only instance in the account is the separate demo server, **stopped**. (Evidence: `results/evidence/destroy_verification_2.txt`.)
+
 **Left for the account owner:** remove the temporary extra IAM permissions from the `airbnb_project` user, and turn off any root access keys.
 
 **To build it again** (about 30 minutes, about $0.10 – 0.16 per hour while it's up), from WSL with the IAM user (not the root account) configured:
@@ -435,7 +437,6 @@ If the second apply stops on a service-linked-role error, wait a minute and run 
 | Screenshots | `screenshots/` |
 | Small, safe-to-share data (summaries, 30-second buckets, CloudWatch exports, Auto Scaling history, run log) | `results/evidence/` |
 | **Large raw k6 files (not in Git; back these up)** | `results/raw/e1_requests.csv`, `e2_requests.csv`, `docker_p5_requests.csv`, `docker_p8_requests.csv`, plus the `*_k6_stdout.txt` logs |
-| Viva notes | `docs/VIVA_WORKFLOW.md`, `docs/VIVA_GUIDE.md` |
 
 ---
 
@@ -475,5 +476,5 @@ If the second apply stops on a service-linked-role error, wait a minute and run 
 | 9 | **Test 2** (17:02 – 17:37) | Scale-out at 17:10 and 17:13, scale-in at 17:36 and 17:37 |
 | 10 | Saved the CloudWatch data and the Auto Scaling history | `results/evidence/` |
 | 11 | **Docker version** (18:59 – 19:30) | Two runs, containers scaled by CPU |
-| 12 | Took the screenshots; wrote the report and viva notes | This document |
+| 12 | Took the screenshots; wrote the report | This document |
 | 13 | **Shut down the stack** (20:37 – 20:47) | 52 resources removed; checked that nothing billable remains |

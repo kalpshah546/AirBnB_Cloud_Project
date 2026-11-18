@@ -1,0 +1,25 @@
+waiting for the running terraform destroy to finish...
+terraform processes still running: 0
+verification time (UTC): 2026-11-17T22:48:54Z
+--- remaining in state: 0
+--- load balancers:
+--- target groups:
+--- auto scaling groups:
+--- launch templates:
+--- RDS:
+--- DB subnet groups:
+--- ElastiCache:
+--- ECR:
+--- SQS:
+None
+--- VPCs (non-default):
+--- NAT gateways (active):
+--- Elastic IPs:
+--- EC2 instances (not terminated):
+i-0c09ab8dcb8b5a32f	t3.small	stopped
+--- project IAM roles:
+--- CloudWatch dashboards:
+--- CloudWatch alarms:
+--- done
+
+[exited with code 0]

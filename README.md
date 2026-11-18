@@ -375,7 +375,7 @@ The Terraform destroy removes the ALB, EC2 ASGs, RDS, Redis, SQS, ECR repositori
 
 ## AWS autoscaling assignment: reproduce
 
-Result summary and graphs: [`reports/FINAL_REPORT.md`](reports/FINAL_REPORT.md). Viva notes: [`docs/VIVA_GUIDE.md`](docs/VIVA_GUIDE.md).
+Result summary and graphs: [`reports/FINAL_REPORT.md`](reports/FINAL_REPORT.md).
 
 **Prerequisites (WSL Ubuntu):** Terraform 1.9.x, AWS CLI v2, Docker, k6. Use a scoped **IAM user**, never the root account, and never put keys in the repository. Check with `aws sts get-caller-identity`.
 
